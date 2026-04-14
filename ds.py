@@ -95,7 +95,3 @@ if __name__ == '__main__':
     
     # Set max_workers to your CPU thread count (Default: 12)
     mass_downscale_videos_multicore(TARGET_FOLDER, max_workers=12)
-
-
-print("Downscaling bot started...")
-mass_downscale_videos(TARGET_FOLDER, target_size=(640, 640))
