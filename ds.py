@@ -59,7 +59,14 @@ def mass_downscale_videos(root_dir, target_size=(640, 640)):
                     print("ERROR! File corrupted!")
                     os.remove(output_path) 
                 else:
-                    print(f" [Completed]{frame_count} frames reduced.")
+                    # Delete original and rename _ds file
+                    try:
+                        os.remove(input_path)
+                        final_path = os.path.join(dirpath, f"{name_without_ext}.mp4")
+                        os.rename(output_path, final_path)
+                        print(f" [Completed] {frame_count} frames reduced. Original deleted & renamed.")
+                    except Exception as e:
+                        print(f"ERROR! Delete/Rename failed: {e}")
 
     if found_videos == 0:
         print("\nERROR! No video files found or _ds files already exist!")
