@@ -30,21 +30,21 @@ def mass_downscale_videos_gpu(root_dir):
                 
                 print(f"\n[Work began] GPU Encoding: {input_path}")
                 
-                # FFmpeg GPU 가속 명령어 (NVENC)
+                # FFmpeg GPU Hardware accel (NVENC)
                 cmd = [
                     'ffmpeg', 
-                    '-y',                      # 덮어쓰기 허용
-                    '-hwaccel', 'cuda',        # CUDA 가속 활성화
+                    '-y',                      # Over-write
+                    '-hwaccel', 'cuda',        # CUDA accel enable
                     '-i', input_path, 
-                    '-vf', f'scale={target_size}', # 리사이즈
-                    '-c:v', 'h264_nvenc',      # 3080 Ti 하드웨어 인코더 사용
-                    '-preset', 'p6',           # 속도/품질 밸런스 
-                    '-c:a', 'copy',            # 오디오는 연산 안 하고 그대로 복사
+                    '-vf', f'scale={target_size}', # Resize
+                    '-c:v', 'h264_nvenc',      # use Nvidia encoder
+                    '-preset', 'p6',           # Speed/Quality balance
+                    '-c:a', 'copy',            # No audio
                     output_path
                 ]
                 
                 try:
-                    # 프로세스 실행 (에러 나기 전까지 FFmpeg 로그 화면에 안 띄움)
+                    # Run (Nothing shows up before it errors out itself)
                     result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
                     
                     # Corruption check & File replacement
@@ -54,7 +54,7 @@ def mass_downscale_videos_gpu(root_dir):
                         os.rename(output_path, final_path)
                         print(f" [Completed] GPU encoded. Original deleted & renamed: {file}")
                     else:
-                        # FFmpeg 에러 발생 시 원인 출력
+                        # If FFmpeg fails, logs showing on console
                         err_msg = result.stderr.decode('utf-8', errors='ignore').split('\n')[-2]
                         print(f"ERROR! FFmpeg failed for {file}. Reason: {err_msg}")
                         if os.path.exists(output_path):
@@ -71,9 +71,7 @@ def mass_downscale_videos_gpu(root_dir):
     else:
         print("\n[All Tasks Finished] GPU NVENC processing completed.")
 
-# =====================================================================
 # Execution Block
-# =====================================================================
 if __name__ == '__main__':
     # Target Folder
     TARGET_FOLDER = os.path.dirname(os.path.abspath(__file__))
