@@ -4,9 +4,9 @@ import os
 def mass_downscale_videos(root_dir, target_size=(640, 640)):
     valid_exts = ('.mp4', '.avi', '.mov', '.mkv', '.wmv')
     
-    # [방어막 1] 폴더 존재하는지 체크
+    # Folder Check
     if not os.path.exists(root_dir):
-        print(f"야!! '{root_dir}' 폴더가 없다. 바탕화면에 진짜 있는 거 맞냐?")
+        print(f"ERROR! '{root_dir}' Folder not found.")
         return
 
     found_videos = 0
@@ -25,13 +25,13 @@ def mass_downscale_videos(root_dir, target_size=(640, 640)):
                 output_file = f"{name_without_ext}_ds.mp4" 
                 output_path = os.path.join(dirpath, output_file)
                 
-                print(f"\n[작업 시작] {input_path}")
+                print(f"\n[Work began] {input_path}")
                 
                 cap = cv2.VideoCapture(input_path)
                 
-                # [방어막 2] 영상 제대로 열렸는지 확인 (한글 경로 체크)
+                # Video check
                 if not cap.isOpened():
-                    print("  🚨 [에러] OpenCV가 영상을 못 열었음!! (경로에 한글 섞여있어서 뻗었을 확률 99%)")
+                    print("ERROR! OCV couldn't find video! Check directory name includes Korean or Japanese init.")
                     continue
 
                 fps = cap.get(cv2.CAP_PROP_FPS)
@@ -54,20 +54,20 @@ def mass_downscale_videos(root_dir, target_size=(640, 640)):
                 cap.release()
                 out.release()
                 
-                # [방어막 3] 0프레임 컷 체크
+                # Corruption check
                 if frame_count == 0:
-                    print("  🚨 [경고] 영상은 열렸는데 프레임이 0개임. 파일 뽀각난 듯.")
+                    print("ERROR! File corrupted!")
                     os.remove(output_path) 
                 else:
-                    print(f"  ✅ [완료] 총 {frame_count} 프레임 다이어트 성공.")
+                    print(f" [Completed]{frame_count} frames reduced.")
 
     if found_videos == 0:
-        print("\n❌ 이 폴더 안에 변환할 영상이 없거나, 전부 이미 '_ds'가 붙어있음.")
+        print("\nERROR! No video files found or _ds files already exist!")
 
-# ==========================================
-# 니가 불러준 바탕화면 배회 폴더 경로 (r 달아둠)
+
+# Target Folder
 TARGET_FOLDER = r"C:\Users\Yakko\Desktop\Ai\이상행동 CCTV 영상\06.배회(wander)\inside_croki_01"
-# ==========================================
 
-print("다운스케일링 봇 기동 중...")
+
+print("Downscaling bot started...")
 mass_downscale_videos(TARGET_FOLDER, target_size=(640, 640))
