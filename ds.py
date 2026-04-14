@@ -2,9 +2,7 @@ import cv2
 import os
 from concurrent.futures import ProcessPoolExecutor
 
-# =====================================================================
 # [Worker Function] Process a single video
-# =====================================================================
 def process_single_video(input_path):
     target_size = (640, 640)
     dirpath = os.path.dirname(input_path)
