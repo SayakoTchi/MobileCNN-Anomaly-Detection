@@ -52,9 +52,7 @@ def process_single_video(input_path):
         except Exception as e:
             return f"ERROR! Delete/Rename failed for {file}: {e}"
 
-# =====================================================================
 # [Main Function] Collect videos and distribute to workers
-# =====================================================================
 def mass_downscale_videos_multicore(root_dir, max_workers=12):
     valid_exts = ('.mp4', '.avi', '.mov', '.mkv', '.wmv')
     
