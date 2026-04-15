@@ -1,3 +1,3 @@
 @echo off
-python ds_gpu.py
+python run.py
 pause
