@@ -6,303 +6,336 @@
     <title>EDGE-VISION Hub</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
     <style>
-        body { 
-            background-color: #020617; 
-            color: #e2e8f0; 
-            font-family: 'Noto Sans KR', sans-serif; 
-            padding-bottom: 70px; 
+        :root {
+            --bg: #071013;
+            --panel: #0f1f24;
+            --panel-soft: #13292f;
+            --line: #26434a;
+            --mint: #36d399;
+            --amber: #f4b942;
+            --danger: #fb7185;
+            --text: #e8f3f4;
+            --muted: #91a8ad;
         }
-        .bg-panel { background-color: #0f172a; border: 1px solid #1e293b; }
-        .text-mint { color: #34d399; }
-        .bg-mint { background-color: #34d399; color: #020617; }
-        .border-mint { border-color: #34d399 !important; }
-        .card { background-color: #0f172a; border: 1px solid #1e293b; }
-        
-        .video-container { 
-            position: relative; 
-            width: 100%; 
-            aspect-ratio: 16/9; 
-            background-color: #000; 
-            overflow: hidden; 
-        }
-        
-        .event-item { 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border: 1px solid #1e293b; 
-            transition: all 0.2s; 
-        }
-        .event-item:hover { background-color: #1e293b; }
 
-        .bottom-nav { background-color: #0f172a; border-top: 1px solid #1e293b; z-index: 1000; }
-        .nav-link { color: #94a3b8; font-size: 0.75rem; text-align: center; cursor: pointer; transition: color 0.2s; }
-        .nav-link:hover { color: #e2e8f0; }
-        .nav-link.active { color: #34d399; }
-        .nav-link i { font-size: 1.25rem; display: block; margin-bottom: 2px; }
-        
-        /* 페이지 전환 애니메이션 */
-        .page-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            padding-bottom: 78px;
+        }
+
+        .bg-panel {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+        }
+
+        .text-mint { color: var(--mint); }
+        .btn-mint { background-color: var(--mint); color: #03110c; border-color: var(--mint); }
+        .btn-mint:hover { background-color: #66e7b6; color: #03110c; border-color: #66e7b6; }
+
+        .topbar {
+            background-color: rgba(15, 31, 36, 0.96);
+            border-bottom: 1px solid var(--line);
+            backdrop-filter: blur(10px);
+        }
+
+        .metric {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 112px;
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+        }
+
+        .video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .page-content {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
         .page-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .event-item {
+            display: grid;
+            grid-template-columns: minmax(0, 130px) 1fr;
+            gap: 1rem;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--mint);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+
+        .event-item.border-danger { border-left-color: var(--danger) !important; }
+        .event-item.border-success { border-left-color: var(--mint) !important; }
+        .event-item.event-compact { grid-template-columns: 1fr; }
+
+        .event-thumb {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #020617;
+        }
+
+        .event-body { min-width: 0; }
+
+        .empty-state {
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0;
+            text-align: center;
+        }
+
+        .detect-preview {
+            width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #020617;
+        }
+
+        .bottom-nav {
+            background-color: rgba(15, 31, 36, 0.98);
+            border-top: 1px solid var(--line);
+            z-index: 1000;
+        }
+
+        .nav-link {
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active { color: var(--mint); }
+        .nav-link i { font-size: 1.25rem; display: block; margin-bottom: 2px; }
+
+        .form-control,
+        .form-select {
+            background-color: #08171b;
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #08171b;
+            border-color: var(--mint);
+            color: var(--text);
+            box-shadow: 0 0 0 0.2rem rgba(54, 211, 153, 0.16);
+        }
+
+        @media (max-width: 640px) {
+            .event-item {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <header class="d-flex justify-content-between align-items-center p-3 bg-panel mb-4 shadow-sm sticky-top">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-shield-lock-fill text-mint fs-4"></i>
-            <h5 class="mb-0 fw-bold text-white tracking-wider">EDGE-VISION</h5>
-            <span class="badge bg-mint bg-opacity-25 text-mint border border-mint rounded-pill ms-2" style="font-size: 0.6rem;">HUB</span>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-            <div class="text-secondary small" id="current-time-display">
-                <i class="bi bi-clock me-1"></i> <span>불러오는 중....</span>
+    <header class="topbar sticky-top">
+        <div class="container-fluid mx-auto d-flex justify-content-between align-items-center gap-3 py-3" style="max-width: 1040px;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock-fill text-mint fs-4"></i>
+                <h1 class="h5 mb-0 fw-bold">EDGE-VISION</h1>
+                <span class="badge rounded-pill text-bg-success">V50 HUB</span>
             </div>
-            <div class="bg-mint rounded-circle d-flex align-items-center justify-content-center fw-bold shadow" style="width: 32px; height: 32px;">
-                JD
+            <div class="d-flex align-items-center gap-2">
+                <span id="node-status-badge" class="badge rounded-pill text-bg-secondary">Unknown</span>
+                <span class="text-secondary small"><i class="bi bi-clock me-1"></i><span id="current-time-display">--:--</span></span>
             </div>
         </div>
     </header>
 
-    <div id="app-container">
+    <div class="container-fluid mx-auto px-3 py-4" style="max-width: 1040px;">
+        <section class="bg-panel rounded-3 p-3 mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-lg-7">
+                    <label for="v50-base-url" class="form-label small text-secondary">V50 Edge Node Base URL</label>
+                    <input id="v50-base-url" class="form-control" type="url" placeholder="http://192.168.0.50:8080">
+                </div>
+                <div class="col-6 col-lg-auto">
+                    <button id="save-base-url" class="btn btn-outline-light w-100" type="button">
+                        <i class="bi bi-save me-1"></i>저장
+                    </button>
+                </div>
+                <div class="col-6 col-lg-auto">
+                    <button id="ping-node" class="btn btn-mint w-100" type="button">
+                        <i class="bi bi-wifi me-1"></i>Ping
+                    </button>
+                </div>
+            </div>
+            <p id="health-message" class="text-secondary small mb-0 mt-2">V50 노드 상태를 확인해 주세요.</p>
+        </section>
 
-        <main id="page-dashboard" class="page-content active container-fluid px-3 mx-auto" style="max-width: 900px;">
-            <div class="card mb-4 overflow-hidden shadow-lg">
-                <div class="card-header bg-panel border-bottom border-secondary d-flex justify-content-between align-items-center py-2">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true" style="width: 0.5rem; height: 0.5rem;"></span>
-                        <span class="text-secondary" style="font-size: 0.7rem; font-weight: 700;">REC</span>
-                        <span class="text-mint fw-bold ms-2" style="font-size: 0.8rem;">CAMERA 1: LIVE</span>
+        <div id="notice" class="alert alert-info py-2 px-3 mb-3" hidden></div>
+
+        <main id="page-dashboard" class="page-content active">
+            <section class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <p class="text-secondary small mb-1">CAMERA 1</p>
+                        <h2 class="h5 mb-0">Live Stream</h2>
                     </div>
-                    <span class="badge border border-mint text-mint bg-transparent py-1 px-2">AI INFERENCE ACTIVE</span>
+                    <span class="badge text-bg-danger"><span class="spinner-grow spinner-grow-sm me-1"></span>REC</span>
                 </div>
                 <div class="video-container">
-                    <img src="/video_feed" alt="CCTV Feed" class="w-100 h-100 object-fit-cover">
+                    <img src="/video_feed" alt="CCTV live feed">
                 </div>
-            </div>
+            </section>
 
-            <div class="row g-3 mb-4">
-                <div class="col-4">
-                    <div class="card h-100 p-3 text-center shadow-sm">
-                        <i class="bi bi-wifi text-mint fs-4 mb-2"></i>
-                        <span class="text-secondary" style="font-size: 0.65rem;">TASK STATUS</span>
-                        <span class="text-white fw-bold mt-1" style="font-size: 0.85rem;">Connected</span>
+            <section class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-activity text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">TIMELINE EVENTS</p>
+                        <strong id="event-count" class="fs-4">0</strong>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="card h-100 p-3 text-center shadow-sm">
-                        <i class="bi bi-server text-mint fs-4 mb-2"></i>
-                        <span class="text-secondary" style="font-size: 0.65rem;">PHONE SERVER</span>
-                        <span class="text-white fw-bold mt-1" style="font-size: 0.85rem;">2h 45m</span>
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-clock-history text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">LAST EVENT</p>
+                        <strong id="last-event-time" class="d-block text-truncate">-</strong>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="card h-100 p-3 text-center shadow-sm">
-                        <i class="bi bi-phone text-mint fs-4 mb-2"></i>
-                        <span class="text-secondary" style="font-size: 0.65rem;">AI MODEL</span>
-                        <span class="text-white fw-bold mt-1" style="font-size: 0.85rem;">Person & Event</span>
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-cpu text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">AI NODE</p>
+                        <strong>V50 NPU</strong>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0 fw-bold text-light" style="font-size: 0.85rem;">RECENT EVENTS</h6>
-                    <div class="d-flex gap-1">
-                        <div class="rounded-circle bg-mint" style="width: 6px; height: 6px;"></div>
-                        <div class="rounded-circle bg-warning" style="width: 6px; height: 6px;"></div>
-                        <div class="rounded-circle bg-info" style="width: 6px; height: 6px;"></div>
-                    </div>
-                </div>
-                
-                <div class="d-flex flex-column gap-2">
-                    <div class="event-item p-3 rounded-3 d-flex justify-content-between align-items-center" style="cursor: pointer;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-dark p-2 rounded border border-secondary text-success"><i class="bi bi-person-fill"></i></div>
-                            <div>
-                                <h6 class="mb-0 text-light" style="font-size: 0.85rem;">Person Detected - Zone 1</h6>
-                                <small class="text-secondary" style="font-size: 0.7rem;">14:32:05</small>
+            <section class="row g-3">
+                <div class="col-12 col-lg-5">
+                    <div class="bg-panel rounded-3 p-3 h-100">
+                        <h3 class="h6 mb-3">Inference Controls</h3>
+                        <form id="config-form" class="mb-4">
+                            <label for="threshold-input" class="form-label small text-secondary">Anomaly Threshold</label>
+                            <div class="input-group">
+                                <input id="threshold-input" class="form-control" type="number" min="0" max="1" step="0.01" value="0.70">
+                                <button id="apply-threshold" class="btn btn-outline-light" type="submit">
+                                    <i class="bi bi-sliders me-1"></i>적용
+                                </button>
                             </div>
-                        </div>
-                        <div class="rounded-circle bg-mint" style="width: 8px; height: 8px;"></div>
+                        </form>
+
+                        <form id="detect-form">
+                            <label for="frame-file" class="form-label small text-secondary">Frame Binary Upload</label>
+                            <input id="frame-file" class="form-control mb-2" type="file" accept="image/*">
+                            <button id="run-detect" class="btn btn-mint w-100" type="submit">
+                                <i class="bi bi-bounding-box-circles me-1"></i>Detect
+                            </button>
+                        </form>
+                        <div id="detect-result" class="bg-panel rounded-3 p-3 mt-3" hidden></div>
                     </div>
                 </div>
-            </div>
-        </main>
-
-        <main id="page-history" class="page-content container-fluid px-3 mx-auto" style="max-width: 900px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0 fw-bold text-white">History</h5>
-                <button class="btn btn-sm btn-outline-secondary text-light"><i class="bi bi-filter"></i> 필터</button>
-            </div>
-            <h6 class="text-secondary mb-3" style="font-size: 0.8rem;">Today, 14 Apr 2026</h6>
-            <div class="d-flex flex-column gap-3 mb-4">
-                <div class="bg-panel p-3 rounded-3 d-flex justify-content-between align-items-center border-start border-4 border-success">
-                    <div class="d-flex gap-3">
-                        <div class="text-success mt-1"><i class="bi bi-person-bounding-box fs-5"></i></div>
-                        <div>
-                            <h6 class="mb-1 text-light" style="font-size: 0.9rem;">사람 인식됨 (정상 이동)</h6>
-                            <small class="text-secondary">카메라 1 - 현관 앞</small>
-                        </div>
+                <div class="col-12 col-lg-7">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h3 class="h6 mb-0">Recent Events</h3>
+                        <button id="refresh-timeline" class="btn btn-sm btn-outline-light" type="button">
+                            <i class="bi bi-arrow-clockwise me-1"></i>갱신
+                        </button>
                     </div>
-                    <span class="text-secondary small">14:32</span>
+                    <div id="recent-events" class="d-flex flex-column gap-2"></div>
                 </div>
-            </div>
+            </section>
         </main>
 
-        <main id="page-anomaly" class="page-content container-fluid px-3 mx-auto" style="max-width: 900px;">
-            <h5 class="mb-4 fw-bold text-white text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Anomaly Alerts</h5>
-            <div class="row g-3">
-                <div class="col-12">
-                    <div class="card bg-panel border-danger border-opacity-50 overflow-hidden">
-                        <div class="card-header bg-danger bg-opacity-10 text-danger border-bottom border-danger border-opacity-25 py-2 d-flex justify-content-between">
-                            <span class="fw-bold" style="font-size: 0.85rem;">CRITICAL: 폭행/다툼 의심</span>
-                            <span class="small">11:45:22</span>
-                        </div>
-                        <div class="row g-0">
-                            <div class="col-5">
-                                <img src="https://via.placeholder.com/400x300/3f000f/ff4444?text=Alert+Snapshot" class="img-fluid h-100 object-fit-cover" alt="alert">
-                            </div>
-                            <div class="col-7 p-3">
-                                <p class="text-light mb-1" style="font-size: 0.85rem;">정확도: <strong>92%</strong></p>
-                                <p class="text-secondary mb-2" style="font-size: 0.75rem;">Zone: 카메라 1 (거실)</p>
-                                <button class="btn btn-sm btn-danger w-100 mt-2" style="font-size: 0.8rem;">상세 보기</button>
-                            </div>
-                        </div>
+        <main id="page-history" class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Timeline</h2>
+                <span class="text-secondary small">/api/timeline</span>
+            </div>
+            <div id="history-list" class="d-flex flex-column gap-3"></div>
+        </main>
+
+        <main id="page-anomaly" class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Anomaly Alerts</h2>
+                <span class="text-secondary small">confidence >= 80%</span>
+            </div>
+            <div id="anomaly-list" class="d-flex flex-column gap-3"></div>
+        </main>
+
+        <main id="page-devices" class="page-content">
+            <h2 class="h5 mb-3">Connected Devices</h2>
+            <section class="bg-panel rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <p class="text-secondary small mb-1">AI COMPUTE NODE</p>
+                        <h3 class="h6 mb-1"><i class="bi bi-phone-fill text-mint me-2"></i>LG V50 ThinQ</h3>
+                        <p class="text-secondary small mb-0">NPU 기반 온디바이스 추론 노드</p>
                     </div>
+                    <span id="device-online-badge" class="badge rounded-pill text-bg-secondary">Ping 필요</span>
                 </div>
-            </div>
+            </section>
         </main>
 
-        <main id="page-devices" class="page-content container-fluid px-3 mx-auto" style="max-width: 900px;">
-            <h5 class="mb-4 fw-bold text-white">Connected Devices</h5>
-            <div class="card bg-panel mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-phone-fill text-mint fs-4"></i>
-                            <h6 class="mb-0 text-light">Camera 1 (Galaxy S)</h6>
-                        </div>
-                        <span class="badge bg-success bg-opacity-25 text-success">Online</span>
+        <main id="page-settings" class="page-content">
+            <h2 class="h5 mb-3">Settings</h2>
+            <section class="bg-panel rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-center gap-3">
+                    <div>
+                        <p class="text-secondary small mb-1">AI MODEL HOT SWAP</p>
+                        <h3 class="h6 mb-1">현재 모델 교체 요청</h3>
+                        <p class="text-secondary small mb-0">V50 노드의 /api/model/swap 엔드포인트를 호출합니다.</p>
                     </div>
-                    <div class="row g-2 text-center">
-                        <div class="col-4">
-                            <p class="text-secondary mb-1" style="font-size: 0.7rem;">BATTERY</p>
-                            <p class="text-light fw-bold mb-0" style="font-size: 0.9rem;"><i class="bi bi-battery-half text-warning me-1"></i> 45%</p>
-                        </div>
-                        <div class="col-4 border-start border-end border-secondary">
-                            <p class="text-secondary mb-1" style="font-size: 0.7rem;">TEMP</p>
-                            <p class="text-light fw-bold mb-0" style="font-size: 0.9rem;"><i class="bi bi-thermometer-half text-danger me-1"></i> 38°C</p>
-                        </div>
-                        <div class="col-4">
-                            <p class="text-secondary mb-1" style="font-size: 0.7rem;">FPS</p>
-                            <p class="text-light fw-bold mb-0" style="font-size: 0.9rem;">15 fps</p>
-                        </div>
-                    </div>
+                    <button id="swap-model" class="btn btn-outline-warning" type="button">
+                        <i class="bi bi-arrow-repeat me-1"></i>교체
+                    </button>
                 </div>
-            </div>
+            </section>
         </main>
+    </div>
 
-        <main id="page-settings" class="page-content container-fluid px-3 mx-auto" style="max-width: 900px;">
-            <h5 class="mb-1 fw-bold text-white">Settings</h5>
-            <p class="text-secondary small mb-4">AI 모델 및 시스템 설정 구성</p>
-            
-            <h6 class="text-mint fw-bold mb-3" style="font-size: 0.9rem;"><i class="bi bi-cpu me-1"></i> AI 모델 선택</h6>
-            
-            <div class="card bg-panel border-mint mb-3">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between">
-                        <div class="d-flex gap-3">
-                            <i class="bi bi-exclamation-triangle text-mint mt-1"></i>
-                            <div>
-                                <h6 class="text-light mb-1" style="font-size: 0.95rem;">절도/폭행 감지 <span class="badge bg-mint text-dark ms-1" style="font-size: 0.6rem;">RECOMMENDED</span></h6>
-                                <p class="text-secondary mb-2" style="font-size: 0.75rem;">Theft and battery behavior detection</p>
-                                <div class="d-flex gap-3" style="font-size: 0.7rem;">
-                                    <span><span class="text-secondary">ACCURACY</span> <span class="text-mint fw-bold">98%</span></span>
-                                </div>
-                            </div>
-                        </div>
-                        <i class="bi bi-check-circle-fill text-mint fs-5"></i>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-    </div> <nav class="bottom-nav fixed-bottom w-100 px-3 py-2 d-flex justify-content-between">
-        <a id="nav-dashboard" onclick="switchPage('dashboard')" class="nav-link text-decoration-none active position-relative">
-            <div class="nav-indicator position-absolute top-0 start-50 translate-middle bg-mint rounded-bottom" style="width: 30px; height: 3px;"></div>
-            <i class="bi bi-grid-1x2-fill mt-1"></i>
-            Dashboard
-        </a>
-        <a id="nav-history" onclick="switchPage('history')" class="nav-link text-decoration-none position-relative">
-            <i class="bi bi-clock-history mt-1"></i>
-            History
-        </a>
-        <a id="nav-anomaly" onclick="switchPage('anomaly')" class="nav-link text-decoration-none position-relative">
-            <i class="bi bi-exclamation-triangle mt-1"></i>
-            Anomaly
-        </a>
-        <a id="nav-devices" onclick="switchPage('devices')" class="nav-link text-decoration-none position-relative">
-            <i class="bi bi-phone mt-1"></i>
-            Devices
-        </a>
-        <a id="nav-settings" onclick="switchPage('settings')" class="nav-link text-decoration-none position-relative">
-            <i class="bi bi-gear mt-1"></i>
-            Settings
-        </a>
+    <nav class="bottom-nav fixed-bottom w-100 px-3 py-2 d-flex justify-content-center gap-4">
+        <button data-page-target="dashboard" class="nav-link active btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-grid-1x2-fill"></i>Dashboard
+        </button>
+        <button data-page-target="history" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-clock-history"></i>History
+        </button>
+        <button data-page-target="anomaly" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-exclamation-triangle"></i>Anomaly
+        </button>
+        <button data-page-target="devices" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-phone"></i>Devices
+        </button>
+        <button data-page-target="settings" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-gear"></i>Settings
+        </button>
     </nav>
 
-    <script>
-        function switchPage(pageId) {
-            // 1. 모든 화면 숨기기
-            const pages = document.querySelectorAll('.page-content');
-            pages.forEach(page => page.classList.remove('active'));
-
-            // 2. 모든 버튼에서 'active' 클래스와 상단 민트색 바(indicator) 제거
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const indicator = link.querySelector('.nav-indicator');
-                if (indicator) {
-                    indicator.remove();
-                }
-            });
-
-            // 3. 선택한 화면 보이기
-            document.getElementById('page-' + pageId).classList.add('active');
-
-            // 4. 선택한 버튼 활성화 및 민트색 바 추가
-            const activeNav = document.getElementById('nav-' + pageId);
-            activeNav.classList.add('active');
-            activeNav.insertAdjacentHTML('afterbegin', '<div class="nav-indicator position-absolute top-0 start-50 translate-middle bg-mint rounded-bottom" style="width: 30px; height: 3px;"></div>');
-        }
-    </script>
-    
+    <script type="module" src="{{ url_for('static', filename='js/dashboard.mjs') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        function updateTime() {
-            const now = new Date();
-            
-            // 한국 시간(Asia/Seoul) 기준으로 시:분 (24시간제) 추출
-            const timeString = now.toLocaleTimeString('ko-KR', {
-                timeZone: 'Asia/Seoul',
-                hour12: false,  // 24시간제로 표시
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            // 화면에 시간 업데이트 (아이콘 포함)
-            document.getElementById('current-time-display').innerHTML = 
-                `<i class="bi bi-clock me-1"></i> ${timeString}`;
-        }
-
-        // 페이지가 열리자마자 바로 시간을 한 번 띄움
-        updateTime();
-        
-        // 그 후 1분(60,000 밀리초)마다 시계를 갱신
-        setInterval(updateTime, 60000);
-    </script>
 </body>
 </html>
