@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - Secure Authentication</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0b111a;
+            color: #ccd6f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* 배경에 은은한 빛 효과 추가 */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.05), transparent 25%);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 45px 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid #1e293b;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 상단 포인트 라인 */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, #10B981, #38bdf8);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-area h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 26px;
+            color: #10B981;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .logo-area p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: #141b2d;
+            border: 1px solid #2d3748;
+            color: #e2e8f0;
+            padding: 14px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            background-color: #0b111a;
+        }
+
+        .form-control::placeholder {
+            color: #475569;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: #10B981;
+            color: #0b111a;
+            border: none;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .btn-login:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        /* 하단 시스템 상태 터미널 텍스트 */
+        .system-status {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px dashed #1e293b;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .status-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #10B981;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        .highlight { color: #38bdf8; }
+
+        @keyframes blink {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="logo-area">
+        <h1>🛡️ <span style="color: #ccd6f6;">EDGE-VISION</span> HUB</h1>
+        <p>AI 서랍장 관제 시스템 - V50 엣지 노드 인증</p>
+    </div>
+
+    <form action="#" method="POST" onsubmit="event.preventDefault(); alert('시스템 관리자 권한으로 관제 파이프라인에 접속합니다.');">
+        <div class="form-group">
+            <label for="admin_id" class="form-label">System Engineer ID</label>
+            <input type="text" id="admin_id" class="form-control" placeholder="엔지니어 식별 코드를 입력하세요" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="password" class="form-label">Security Key</label>
+            <input type="password" id="password" class="form-control" placeholder="••••••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-login">인프라 접근 승인</button>
+    </form>
+    <div style="text-align: center; margin-top: 15px;">
+        <span style="font-size: 12px; color: #64748b;">신규 엔지니어 등록이 필요하십니까?</span>
+        <br>
+        <a href="{% url 'signup' %}" style="color: #38bdf8; font-size: 13px; font-weight: bold; text-decoration: none;">관제 시스템 인프라 계정 발급 (회원가입)</a>
+    </div>
+    <div class="system-status">
+        <div class="status-line">
+            <div class="status-dot"></div>
+            <span>NPU Edge Inference Node: <span class="highlight">STANDBY</span></span>
+        </div>
+        <div class="status-line" style="margin-left: 14px;">
+            <span>Local Vision Protocol: Secure TLS v1.3</span>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - Anomaly Alerts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght=500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #071013;
+            --panel: #0f1f24;
+            --line: #26434a;
+            --mint: #36d399;
+            --text: #e8f3f4;
+        }
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #0b111a; 
+            color: #ccd6f6; 
+            padding-bottom: 78px;
+            
+            padding-top: 85px;
+        }
+        .topbar {
+            background-color: rgba(15, 31, 36, 0.96); 
+            border-bottom: 1px solid #26434a;
+            backdrop-filter: blur(10px); 
+            z-index: 1050;
+            width: 100%;
+            position: fixed; 
+            top: 0; 
+            left: 0;
+            
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .topbar-hidden {
+            transform: translateY(-100%); /* 상단바 높이만큼 위로 끌어올려 숨김 */
+        }
+        .anomaly-container {
+            width: 100%; max-width: 1040px; background-color: #0f172a;
+            border-radius: 12px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1e293b; margin: 30px auto;
+        }
+        .bottom-nav {
+            background-color: rgba(15, 31, 36, 0.98); border-top: 1px solid #26434a;
+            z-index: 1000; position: fixed; bottom: 0; left: 0; width: 100%;
+        }
+        .nav-link { color: #91a8ad; font-size: 0.75rem; text-align: center; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { color: #36d399; }
+        .nav-link i { font-size: 1.25rem; display: block; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="container-fluid mx-auto d-flex justify-content-between align-items-center gap-3 py-3" style="max-width: 1040px;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-lock-fill text-mint fs-4"></i>
+            <h1 class="h5 mb-0 fw-bold">EDGE-VISION</h1>
+            <span class="badge rounded-pill text-bg-success">V50 HUB</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill d-inline-flex align-items-center" style="background-color: #38bdf8; color: #0b111a; font-weight: 700; padding: 6px 12px; font-size: 12px;">
+                <i class="bi bi-person-fill me-1"></i>{{ user.username }}
+            </span>
+            <span class="text-secondary small"><i class="bi bi-clock me-1"></i><span id="current-time-display">--:--</span></span>
+        </div>
+    </div>
+</header>
+
+<div class="anomaly-container">
+    <h2 class="h4 mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Anomaly Alerts Control Panel</h2>
+    <p class="text-secondary small">엣지 노드 단말의 NPU 추론 결과 신뢰도 80% 이상의 실시간 배회 및 침입 분석 데이터 구역입니다.</p>
+    <hr style="border-color:#1e293b; margin: 20px 0;">
+    <p style="color:#64748b; font-size: 14px; text-align: center; padding: 40px 0;">📡 실시간 AI 분석 피드가 동기화되어 스탠바이 중입니다.</p>
+</div>
+
+<nav class="bottom-nav d-flex justify-content-center gap-4 px-3 py-2">
+    <a href="{% url 'dashboard' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-grid-1x2-fill"></i>Dashboard
+    </a>
+    <a href="{% url 'history' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-clock-history"></i>History
+    </a>
+    <a href="{% url 'anomaly' %}" class="nav-link active text-decoration-none">
+        <i class="bi bi-exclamation-triangle-fill"></i>Anomaly
+    </a>
+    <a href="{% url 'settings' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-gear"></i>Settings
+    </a>
+</nav>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('current-time-display').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    let lastScrollTop = 0;
+    const topbar = document.querySelector('.topbar');
+
+    window.addEventListener('scroll', function() {
+        // 현재 스크롤 위치 가져오기
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > lastScrollTop && scrollTop > 60) {
+            // 아래로 스크롤 중 & 맨 위에서 60px 이상 내려왔을 때 -> 상단바 숨김
+            topbar.classList.add('topbar-hidden');
+        } else {
+            // 위로 스크롤 중이거나 최상단일 때 -> 상단바 나타남
+            topbar.classList.remove('topbar-hidden');
+        }
+        
+        lastScrollTop = scrollTop; // 현재 위치를 저장해두고 다음 번에 비교
+    });
+</script>
+</body>
+</html>

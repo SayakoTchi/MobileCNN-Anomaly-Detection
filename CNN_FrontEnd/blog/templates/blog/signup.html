@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - 계정 발급</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0b111a;
+            color: #ccd6f6;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background-image: radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.05), transparent 25%), radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.05), transparent 25%);
+        }
+        .signup-container {
+            width: 100%; max-width: 440px; background-color: #0f172a;
+            border-radius: 12px; padding: 45px 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); border: 1px solid #1e293b; position: relative; overflow: hidden;
+        }
+        .signup-container::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #38bdf8, #a855f7);
+        }
+        .logo-area { text-align: center; margin-bottom: 30px; }
+        .logo-area h1 { font-family: 'Poppins', sans-serif; font-size: 24px; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+        .logo-area p { font-size: 13px; color: #64748b; }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; text-transform: uppercase; }
+        .form-control {
+            width: 100%; background-color: #141b2d; border: 1px solid #2d3748; color: #e2e8f0;
+            padding: 12px 16px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease;
+        }
+        .form-control:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); background-color: #0b111a; }
+        .btn-signup {
+            width: 100%; background-color: #38bdf8; color: #0b111a; border: none; padding: 14px;
+            border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-top: 10px;
+        }
+        .btn-signup:hover { background-color: #0ea5e9; transform: translateY(-1px); }
+        .error-msg { color: #f43f5e; font-size: 12px; margin-bottom: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="signup-container">
+    <div class="logo-area">
+        <h1>🔐 System Engineer 등록</h1>
+        <p>EDGE-VISION 관제 파이프라인 접근 권한 발급</p>
+    </div>
+
+    {% if form.errors %}
+        <div class="error-msg" style="background: rgba(244, 63, 94, 0.1); padding: 10px; border-radius: 6px; border: 1px solid #f43f5e; text-align: left;">
+            <strong style="color: #f43f5e;">계정 생성 실패:</strong><br>
+            <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #f43f5e; font-size: 12px;">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'signup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">System ID (아이디)</label>
+            <input type="text" name="username" class="form-control" placeholder="사용할 엔지니어 식별 코드" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Security Key (비밀번호)</label>
+            <input type="password" name="password1" class="form-control" placeholder="비밀번호 입력" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Confirm Security Key (비밀번호 확인)</label>
+            <input type="password" name="password2" class="form-control" placeholder="비밀번호 재입력" required>
+        </div>
+
+        <button type="submit" class="btn-signup">엔지니어 등록 완료</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'login' %}" style="color: #64748b; font-size: 12px; text-decoration: none;">← 로그인 화면으로 복귀</a>
+    </div>
+</div>
+
+</body>
+</html>

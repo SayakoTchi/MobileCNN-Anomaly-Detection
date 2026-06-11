@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - System Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght=500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #0b111a; 
+            color: #ccd6f6; 
+            padding-bottom: 78px;
+            padding-top: 70px;
+            margin: 0;
+        }
+        
+            /* 공통 상단바 구조 고정화 */
+            .topbar {
+                background-color: rgba(15, 31, 36, 0.96); 
+                border-bottom: 1px solid #26434a;
+                backdrop-filter: blur(10px); 
+                z-index: 1050;
+                width: 100%;
+
+                /* 기존 배경색, 보더 등 유지... */
+                z-index: 1050;
+                width: 100%;
+                
+                /* 🚨 아래 4줄을 추가하세요! */
+                position: fixed; 
+                top: 0; 
+                left: 0;
+                transition: transform 0.3s ease-in-out; /
+            }
+
+            .topbar-hidden {
+                transform: translateY(-100%); /* 상단바 높이만큼 위로 끌어올려 숨김 */
+                
+            }
+
+        .settings-container {
+            width: 100%; 
+            max-width: 1040px; 
+            background-color: #0f172a;
+            border-radius: 12px; 
+            padding: 30px; 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1e293b; 
+            margin: 30px auto; /* 중앙 정렬 고정 */
+        }
+
+        .header-area { border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .header-area h1 { font-family: 'Poppins', sans-serif; font-size: 24px; color: #a855f7; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .header-area p { font-size: 13px; color: #64748b; margin: 0; }
+        
+        .setting-card { background: #141b2d; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; height: 100%; }
+        .setting-card h3 { font-size: 15px; color: #e2e8f0; margin-bottom: 20px; border-bottom: 1px dashed #2d3748; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-label { font-size: 12px; color: #94a3b8; font-weight: 500; text-transform: uppercase; }
+        .form-control, .form-select { background-color: #0b111a; border: 1px solid #2d3748; color: #e2e8f0; font-size: 13px; }
+        
+        .btn-custom { font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 6px; transition: all 0.2s; }
+        .btn-save { background-color: #a855f7; color: #fff; border: none; }
+        .btn-danger-outline { background: transparent; border: 1px solid #f43f5e; color: #f43f5e; }
+        
+        .profile-box { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: #0b111a; border-radius: 8px; border: 1px solid #2d3748; }
+        .profile-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, #a855f7, #38bdf8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #fff; }
+        
+        .bottom-nav { background-color: rgba(15, 31, 36, 0.98); border-top: 1px solid #26434a; z-index: 1000; position: fixed; bottom: 0; left: 0; width: 100%; }
+        .nav-link { color: #91a8ad; font-size: 0.75rem; text-align: center; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { color: #36d399; }
+        .nav-link i { font-size: 1.25rem; display: block; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="container-fluid d-flex justify-content-between align-items-center gap-3 py-3" style="max-width: 1040px; margin: 0 auto;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-lock-fill text-mint fs-4"></i>
+            <h1 class="h5 mb-0 fw-bold" style="color: #e8f3f4; margin: 0;">EDGE-VISION</h1>
+            <span class="badge rounded-pill text-bg-success">V50 HUB</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill d-inline-flex align-items-center" style="background-color: #38bdf8; color: #0b111a; font-weight: 700; padding: 6px 12px; font-size: 12px;">
+                <i class="bi bi-person-fill me-1"></i>{{ user.username }}
+            </span>
+            <span class="text-secondary small"><i class="bi bi-clock me-1"></i><span id="current-time-display">--:--</span></span>
+        </div>
+    </div>
+</header>
+
+<div class="settings-container">
+    <div class="header-area">
+        <div>
+            <h1><i class="bi bi-gear-fill"></i> System Settings</h1>
+            <p>V50 EDGE-VISION 관제 인프라 환경 설정 및 계정 관리</p>
+        </div>
+        <button class="btn btn-custom btn-save"><i class="bi bi-check2-circle me-1"></i> 변경사항 저장</button>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="setting-card">
+                <h3><i class="bi bi-person-badge"></i> Engineer Profile</h3>
+                <div class="profile-box">
+                    <div class="profile-avatar">{{ user.username|make_list|first|upper|default:"A" }}</div>
+                    <div class="profile-info">
+                        <h4 class="mb-0 fw-bold" style="color: #fff;">{{ user.username|default:"System Admin" }}</h4>
+                        <p class="mb-0 text-success small">Master Engineer Level</p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">접속 권한</label>
+                    <input type="text" class="form-control" value="최고 관리자 (Superuser)" disabled>
+                </div>
+                <div class="mt-4 pt-3" style="border-top: 1px dashed #2d3748;">
+                    <button class="btn btn-custom btn-danger-outline w-100" onclick="alert('로그아웃 후 초기인증창으로 복귀합니다.'); window.location.href='/login/';">
+                        <i class="bi bi-box-arrow-right me-1"></i> 관제 시스템 로그아웃
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="setting-card">
+                <h3><i class="bi bi-cpu"></i> AI Edge Config</h3>
+                <div class="mb-3">
+                    <label class="form-label">Active Detection Model</label>
+                    <select class="form-select"><option selected>YOLOv8_NPU_Optimized</option></select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav d-flex justify-content-center gap-4 px-3 py-2">
+    <a href="{% url 'dashboard' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-grid-1x2-fill"></i>Dashboard
+    </a>
+    <a href="{% url 'history' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-clock-history"></i>History
+    </a>
+    <a href="{% url 'anomaly' %}" class="nav-link text-decoration-none">
+        <i class="bi bi-exclamation-triangle"></i>Anomaly
+    </a>
+    <a href="{% url 'settings' %}" class="nav-link active text-decoration-none">
+        <i class="bi bi-gear-fill"></i>Settings
+    </a>
+</nav>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('current-time-display').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    let lastScrollTop = 0;
+    const topbar = document.querySelector('.topbar');
+
+    window.addEventListener('scroll', function() {
+        // 현재 스크롤 위치 가져오기
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > lastScrollTop && scrollTop > 60) {
+            // 아래로 스크롤 중 & 맨 위에서 60px 이상 내려왔을 때 -> 상단바 숨김
+            topbar.classList.add('topbar-hidden');
+        } else {
+            // 위로 스크롤 중이거나 최상단일 때 -> 상단바 나타남
+            topbar.classList.remove('topbar-hidden');
+        }
+        
+        lastScrollTop = scrollTop; // 현재 위치를 저장해두고 다음 번에 비교
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
