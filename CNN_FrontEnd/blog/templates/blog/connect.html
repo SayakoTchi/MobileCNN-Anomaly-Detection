@@ -290,22 +290,45 @@
             return `http://${trimmed}`.replace(/\/+$/, "");
         }
 
-        function connect(serverUrl) {
+        async function connect(serverUrl) {
             if (!serverUrl) {
-                setStatus("서버 주소를 입력해야 합니다.", "error");
+                setStatus("백엔드 서버 주소를 입력해야 합니다.", "error");
                 serverInput.focus();
                 return;
             }
 
             localStorage.setItem(STORAGE_SERVER_URL, serverUrl);
-            setStatus(`접속 중: ${serverUrl}`, "ok");
+            setStatus(`백엔드 연결 확인 중: ${serverUrl}/ping`, "warn");
 
-            if (window.AndroidBridge && typeof window.AndroidBridge.openDashboard === "function") {
-                window.AndroidBridge.openDashboard(serverUrl);
-                return;
+            try {
+                const response = await fetch(`${serverUrl}/ping`, {
+                    method: "GET",
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const message = await response.text();
+
+                if (!message.includes("Node is good")) {
+                    throw new Error(`Unexpected response: ${message}`);
+                }
+
+                setStatus("백엔드 연결 성공. 대시보드로 이동합니다.", "ok");
+
+                const dashboardUrl = `/dashboard/?apiBase=${encodeURIComponent(serverUrl)}`;
+
+                if (window.AndroidBridge && typeof window.AndroidBridge.openDashboard === "function") {
+                    window.AndroidBridge.openDashboard(dashboardUrl);
+                    return;
+                }
+
+                window.location.href = dashboardUrl;
+            } catch (error) {
+                setStatus(`백엔드 연결 실패: ${error.message}`, "error");
             }
-
-            window.location.href = serverUrl;
         }
 
         function loadSavedValue() {

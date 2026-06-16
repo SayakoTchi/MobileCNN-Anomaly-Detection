@@ -221,118 +221,141 @@
     </style>
 </head>
 <body>
-    <main class="connect-container">
-        <section class="logo-area">
-            <div class="logo-mark">EV</div>
-            <h1>EDGE-VISION HUB</h1>
-            <p>관제 서버 연결 설정<br>접속 가능한 서버 주소를 입력하세요.</p>
-        </section>
+<main class="connect-container">
+    <section class="logo-area">
+        <div class="logo-mark">EV</div>
+        <h1>EDGE-VISION HUB</h1>
+        <p>관제 서버 연결 설정<br>접속 가능한 서버 주소를 입력하세요.</p>
+    </section>
 
-        <form id="connect-form">
-            <div class="form-group">
-                <label for="server-url" class="form-label">Backend Server URL</label>
-                <input
+    <form id="connect-form">
+        <div class="form-group">
+            <label for="server-url" class="form-label">Backend Server URL</label>
+            <input
                     id="server-url"
                     class="form-control"
                     type="url"
                     placeholder="http://백엔드IP:8080"
                     autocomplete="off"
                     required
-                >
-                <p class="hint">예: 백엔드 앱 화면에 표시된 IP:8080 주소를 입력하세요.</p>
-            </div>
+            >
+            <p class="hint">예: 백엔드 앱 화면에 표시된 IP:8080 주소를 입력하세요.</p>
+        </div>
 
-            <div class="button-row">
-                <button class="btn btn-primary" type="submit">서버 접속</button>
-                <button class="btn btn-secondary" type="button" id="last-connect">마지막 주소로 접속</button>
-                <button class="btn btn-danger" type="button" id="clear-saved">저장값 초기화</button>
-            </div>
-        </form>
+        <div class="button-row">
+            <button class="btn btn-primary" type="submit">서버 접속</button>
+            <button class="btn btn-secondary" type="button" id="last-connect">마지막 주소로 접속</button>
+            <button class="btn btn-danger" type="button" id="clear-saved">저장값 초기화</button>
+        </div>
+    </form>
 
-        <section class="status-box">
-            <div class="status-line">
-                <span id="status-dot" class="status-dot warn"></span>
-                <span id="status-text" class="status-text">서버 주소를 입력한 뒤 서버 접속을 누르세요.</span>
-            </div>
-        </section>
-    </main>
+    <section class="status-box">
+        <div class="status-line">
+            <span id="status-dot" class="status-dot warn"></span>
+            <span id="status-text" class="status-text">서버 주소를 입력한 뒤 서버 접속을 누르세요.</span>
+        </div>
+    </section>
+</main>
 
-    <script>
-        const STORAGE_SERVER_URL = "edgeVision.serverUrl";
+<script>
+    const STORAGE_SERVER_URL = "edgeVision.serverUrl";
 
-        const serverInput = document.getElementById("server-url");
-        const form = document.getElementById("connect-form");
-        const statusDot = document.getElementById("status-dot");
-        const statusText = document.getElementById("status-text");
+    const serverInput = document.getElementById("server-url");
+    const form = document.getElementById("connect-form");
+    const statusDot = document.getElementById("status-dot");
+    const statusText = document.getElementById("status-text");
 
-        function setStatus(message, type) {
-            statusText.textContent = message;
-            statusDot.className = "status-dot";
+    function setStatus(message, type) {
+        statusText.textContent = message;
+        statusDot.className = "status-dot";
 
-            if (type === "error") {
-                statusDot.classList.add("error");
-            } else if (type === "warn") {
-                statusDot.classList.add("warn");
-            }
+        if (type === "error") {
+            statusDot.classList.add("error");
+        } else if (type === "warn") {
+            statusDot.classList.add("warn");
+        }
+    }
+
+    function normalizeUrl(value) {
+        const trimmed = String(value || "").trim();
+
+        if (!trimmed) {
+            return "";
         }
 
-        function normalizeUrl(value) {
-            const trimmed = String(value || "").trim();
-
-            if (!trimmed) {
-                return "";
-            }
-
-            if (/^https?:\/\//i.test(trimmed)) {
-                return trimmed.replace(/\/+$/, "");
-            }
-
-            return `http://${trimmed}`.replace(/\/+$/, "");
+        if (/^https?:\/\//i.test(trimmed)) {
+            return trimmed.replace(/\/+$/, "");
         }
 
-        function connect(serverUrl) {
-            if (!serverUrl) {
-                setStatus("서버 주소를 입력해야 합니다.", "error");
-                serverInput.focus();
-                return;
+        return `http://${trimmed}`.replace(/\/+$/, "");
+    }
+
+    async function connect(serverUrl) {
+        if (!serverUrl) {
+            setStatus("백엔드 서버 주소를 입력해야 합니다.", "error");
+            serverInput.focus();
+            return;
+        }
+
+        localStorage.setItem(STORAGE_SERVER_URL, serverUrl);
+        setStatus(`백엔드 연결 확인 중: ${serverUrl}/ping`, "warn");
+
+        try {
+            const response = await fetch(`${serverUrl}/ping`, {
+                method: "GET",
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            localStorage.setItem(STORAGE_SERVER_URL, serverUrl);
-            setStatus(`접속 중: ${serverUrl}`, "ok");
+            const message = await response.text();
+
+            if (!message.includes("Node is good")) {
+                throw new Error(`Unexpected response: ${message}`);
+            }
+
+            setStatus("백엔드 연결 성공. 대시보드로 이동합니다.", "ok");
+
+            const dashboardUrl = `/dashboard/?apiBase=${encodeURIComponent(serverUrl)}`;
 
             if (window.AndroidBridge && typeof window.AndroidBridge.openDashboard === "function") {
-                window.AndroidBridge.openDashboard(serverUrl);
+                window.AndroidBridge.openDashboard(dashboardUrl);
                 return;
             }
 
-            window.location.href = serverUrl;
+            window.location.href = dashboardUrl;
+        } catch (error) {
+            setStatus(`백엔드 연결 실패: ${error.message}`, "error");
         }
+    }
 
-        function loadSavedValue() {
-            const savedUrl = localStorage.getItem(STORAGE_SERVER_URL) || "";
-            serverInput.value = savedUrl;
+    function loadSavedValue() {
+        const savedUrl = localStorage.getItem(STORAGE_SERVER_URL) || "";
+        serverInput.value = savedUrl;
 
-            if (savedUrl) {
-                setStatus(`저장된 서버 주소: ${savedUrl}`, "ok");
-            }
+        if (savedUrl) {
+            setStatus(`저장된 서버 주소: ${savedUrl}`, "ok");
         }
+    }
 
-        form.addEventListener("submit", function (event) {
-            event.preventDefault();
-            connect(normalizeUrl(serverInput.value));
-        });
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        connect(normalizeUrl(serverInput.value));
+    });
 
-        document.getElementById("last-connect").addEventListener("click", function () {
-            connect(normalizeUrl(localStorage.getItem(STORAGE_SERVER_URL)));
-        });
+    document.getElementById("last-connect").addEventListener("click", function () {
+        connect(normalizeUrl(localStorage.getItem(STORAGE_SERVER_URL)));
+    });
 
-        document.getElementById("clear-saved").addEventListener("click", function () {
-            localStorage.removeItem(STORAGE_SERVER_URL);
-            serverInput.value = "";
-            setStatus("저장된 서버 주소를 초기화했습니다.", "warn");
-        });
+    document.getElementById("clear-saved").addEventListener("click", function () {
+        localStorage.removeItem(STORAGE_SERVER_URL);
+        serverInput.value = "";
+        setStatus("저장된 서버 주소를 초기화했습니다.", "warn");
+    });
 
-        loadSavedValue();
-    </script>
+    loadSavedValue();
+</script>
 </body>
 </html>

@@ -1,13 +1,18 @@
 import { V50ApiClient } from './v50Api.js';
 
 const BASE_URL_STORAGE_KEY = 'edgeVision.v50BaseUrl';
-// 백엔드 서버 주소
 const DEFAULT_BASE_URL = 'http://192.168.216.204:8080';
+
+const queryApiBaseUrl = new URLSearchParams(window.location.search).get('apiBase');
+
+if (queryApiBaseUrl) {
+  localStorage.setItem(BASE_URL_STORAGE_KEY, queryApiBaseUrl);
+}
 
 const state = {
   timeline: [],
   client: new V50ApiClient({
-    baseUrl: localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL,
+    baseUrl: queryApiBaseUrl || localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL,
   }),
 };
 
