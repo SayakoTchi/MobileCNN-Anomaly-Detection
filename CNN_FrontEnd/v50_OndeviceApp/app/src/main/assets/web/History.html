@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - Advanced Log Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0b111a;
+            color: #ccd6f6;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .history-container {
+            width: 100%;
+            max-width: 1100px;
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1e293b;
+            position: relative;
+            min-height: 700px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .title-area h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            color: #10B981;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-area p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #141b2d;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 15px 20px;
+        }
+        .card .label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+        .card .value { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #e2e8f0; margin-top: 5px; }
+        .card .value.danger { color: #f43f5e; }
+
+        .control-panel {
+            background-color: #141b2d;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .filter-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0b111a;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #2d3748;
+        }
+        .filter-title { font-size: 12px; color: #94a3b8; font-weight: bold; margin-right: 5px; }
+        .filter-label { font-size: 12px; color: #cbd5e1; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .filter-label input { cursor: pointer; accent-color: #10B981; }
+        .archive-filter input { accent-color: #38bdf8; }
+
+        /* 버튼 컴포넌트 */
+        .btn-action {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s;
+        }
+        .btn-action:hover { background: #334155; color: #fff; }
+
+        #btn-trigger { background: rgba(244, 63, 94, 0.1); border-color: #f43f5e; color: #f43f5e; font-weight: bold; }
+        #btn-trigger:hover { background: #f43f5e; color: #0b111a; }
+        #btn-refresh, .btn-back { background: transparent; border-color: #10B981; color: #10B981; }
+        #btn-refresh:hover { background: rgba(16, 185, 129, 0.1); }
+        .btn-back { border-color: #38bdf8; color: #38bdf8; }
+        .btn-back:hover { background: rgba(56, 189, 248, 0.1); }
+
+        .btn-resolve {
+            background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981;
+            padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+        .btn-resolve:hover { background: #10B981; color: #0b111a; }
+
+        /* 중요 로깅 이동 및 영구 삭제 버튼 */
+        .btn-bookmark {
+            background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #f59e0b;
+            padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+        .btn-bookmark:hover { background: #f59e0b; color: #0b111a; }
+
+        .btn-delete-permanently {
+            background: rgba(244, 63, 94, 0.15); border: 1px solid #f43f5e; color: #f43f5e;
+            padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+        .btn-delete-permanently:hover { background: #f43f5e; color: #0b111a; }
+
+        /* 상단 탭 매핑 내비게이션 */
+        .navigation-tabs {
+            display: flex; gap: 8px; margin-bottom: 16px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px; scrollbar-width: none;
+        }
+        .navigation-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab {
+            padding: 10px 16px; background: #141b2d; border: 1px solid #1e293b; border-radius: 6px;
+            color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .nav-tab.active { background: #1e293b; border-color: #38bdf8; color: #38bdf8; }
+
+        /* 테이블 구조 */
+        .log-table-wrapper { background: #141b2d; border: 1px solid #1e293b; border-radius: 8px; overflow-x: auto; margin-bottom: 30px; }
+        table { min-width: 560px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #1e293b; color: #10B981; font-size: 13px; font-weight: 500; padding: 14px 16px; border-bottom: 1px solid #334155; }
+        td { padding: 14px 16px; border-bottom: 1px solid #1e293b; font-size: 13px; color: #cbd5e1; vertical-align: top; }
+        tr:hover td { background-color: #1e293b; }
+
+        .mono-text { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; color: #38bdf8; }
+        .line-number { color: #f59e0b; font-weight: bold; }
+        .code-snippet { font-family: 'SFMono-Regular', Consolas, monospace; background: #0b111a; padding: 8px 12px; border-radius: 4px; color: #f43f5e; font-size: 12px; margin-top: 6px; border-left: 3px solid #f43f5e; white-space: pre-wrap; }
+
+        /* 배지 스타일 */
+        .badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .level-1 { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid #f43f5e; }
+        .level-2 { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid #f97316; }
+        .level-3 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+        .level-4 { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid #3b82f6; }
+        .level-5 { background: rgba(160, 174, 192, 0.2); color: #a0aec0; border: 1px solid #a0aec0; }
+        .badge-status { background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 10px; margin-left: 5px; }
+        .badge-saved { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; font-size: 10px; margin-left: 5px; }
+
+        .empty-row { text-align: center; padding: 50px !important; color: #64748b; font-size: 14px; }
+
+        /* 상단 뒤로가기 버튼 */
+        .back-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 12px;
+        }
+        .btn-back-home {
+            background: transparent; border: 1px solid #334155; color: #94a3b8;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-back-home:hover { background: #1e293b; color: #ccd6f6; }
+
+        /* ─── 모바일 반응형 ─── */
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .history-container { padding: 12px; border-radius: 8px; }
+
+            .history-header {
+                flex-direction: column; align-items: flex-start; gap: 8px;
+                padding-bottom: 12px; margin-bottom: 16px;
+            }
+            .title-area h1 { font-size: 15px; gap: 6px; }
+            .title-area p { font-size: 11px; }
+
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px; margin-bottom: 16px;
+            }
+            .card { padding: 10px 12px; }
+            .card .value { font-size: 20px; }
+
+            .control-panel { padding: 10px; gap: 8px; margin-bottom: 14px; }
+            .control-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .filter-wrapper { flex-wrap: wrap; gap: 6px; padding: 8px 10px; width: 100%; }
+            .filter-title { font-size: 11px; width: 100%; margin-right: 0; margin-bottom: 2px; }
+            .filter-label { font-size: 11px; }
+
+            #btn-trigger { font-size: 11px; padding: 6px 10px; width: 100%; }
+            #log-counter { font-size: 12px; }
+
+            th { padding: 10px 8px; font-size: 12px; }
+            td { padding: 10px 8px; font-size: 12px; }
+            .code-snippet { font-size: 11px; padding: 6px 8px; }
+        }
+
+        @media (max-width: 480px) {
+            .summary-cards { grid-template-columns: 1fr; }
+            .nav-tab { font-size: 11px; padding: 8px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="history-container">
+
+    <div class="back-bar">
+        <button class="btn-back-home" onclick="location.href='./index.html'">← 대시보드</button>
+        <span style="font-size:12px; color:#475569;">EDGE-VISION HUB</span>
+    </div>
+
+    <div class="navigation-tabs">
+        <div class="nav-tab active" id="tab-history" onclick="switchView('section-history')">⏱️ 실시간 미해결 오류 관제</div>
+        <div class="nav-tab" id="tab-archive" onclick="switchView('section-archive')">📦 정상화된 로그 아카이브 (<span id="tab-count-archive">0</span>/30)</div>
+        <div class="nav-tab" id="tab-bookmark" onclick="switchView('section-bookmark')" style="border-color: #f59e0b; color: #f59e0b;">⭐ 저장된 중요 로그 (<span id="tab-count-bookmark">0</span>)</div>
+    </div>
+
+    <div id="section-history" class="view-section active">
+        <div class="history-header">
+            <div class="title-area">
+                <h1>⏱️ EDGE-VISION V50 HUB - History</h1>
+                <p>엣지 노드 인프라의 단계별 시스템 예외 크래시 로그 분석 리포트</p>
+            </div>
+            <button class="btn-refresh" onclick="refreshPipeline()">🔄 관제 파이프라인 새로고침</button>
+        </div>
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="label">Total System Exceptions</div>
+                <div class="value" id="stat-total">142</div>
+            </div>
+            <div class="card">
+                <div class="label">Active High Risk Errors (Lv.1~2)</div>
+                <div class="value danger" id="stat-unresolved">2</div>
+            </div>
+            <div class="card">
+                <div class="label">AI Inference Health Rate</div>
+                <div class="value" id="stat-health" style="color: #10B981;">98.4%</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-row">
+                <button class="btn-action" id="btn-trigger" onclick="generateMockError()">💥 [시뮬레이션] 가상 오류 발생시키기</button>
+                <div style="font-size: 13px; color: #94a3b8; font-weight: 500;" id="log-counter">미해결 예외 인스턴스: 3개 리포트됨</div>
+            </div>
+            
+            <div class="control-row" style="border-top: 1px solid #2d3748; padding-top: 10px; margin-top: 5px;">
+                <div class="filter-wrapper">
+                    <span class="filter-title">🔍 미해결 단계 필터:</span>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="all" checked onclick="historyFilterChanged()"> 전체보기</label>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="1" onclick="historyFilterChanged()"> 1단계</label>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="2" onclick="historyFilterChanged()"> 2단계</label>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="3" onclick="historyFilterChanged()"> 3단계</label>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="4" onclick="historyFilterChanged()"> 4단계</label>
+                    <label class="filter-label"><input type="radio" name="errorFilter" value="5" onclick="historyFilterChanged()"> 5단계</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Timestamp</th>
+                        <th style="width: 12%;">Error Level</th>
+                        <th style="width: 20%;">Target File & Line</th>
+                        <th style="width: 43%;">Exception Details & Root Cause Code</th>
+                        <th style="width: 10%; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="section-archive" class="view-section">
+        <div class="history-header">
+            <div class="title-area">
+                <h1 style="color: #38bdf8;">📦 정상화된 로그 아카이브 (최근 30개 자동 갱신 보관)</h1>
+                <p>해결 처리된 최신 30개의 로그가 보관되며, 초과 시 가장 오래된 로그부터 자동 산쇄 삭제됩니다.</p>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-row">
+                <div class="filter-wrapper" style="background: #0b111a;">
+                    <span class="filter-title" style="color: #38bdf8;">🔍 아카이브 단계 필터:</span>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="all" checked onclick="archiveFilterChanged()"> 전체보기</label>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="1" onclick="archiveFilterChanged()"> 1단계</label>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="2" onclick="archiveFilterChanged()"> 2단계</label>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="3" onclick="archiveFilterChanged()"> 3단계</label>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="4" onclick="archiveFilterChanged()"> 4단계</label>
+                    <label class="filter-label archive-filter"><input type="radio" name="archiveFilter" value="5" onclick="archiveFilterChanged()"> 5단계</label>
+                </div>
+                <div style="font-size: 13px; color: #38bdf8; font-weight: 500;" id="archive-counter">보관된 해결 로그: 0개 / 최대 30개</div>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper" style="border-color: #334155;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18%; color: #38bdf8; background: #141b2d;">Resolved Time</th>
+                        <th style="width: 15%; color: #38bdf8; background: #141b2d;">Original Level</th>
+                        <th style="width: 22%; color: #38bdf8; background: #141b2d;">Source Location</th>
+                        <th style="width: 35%; color: #38bdf8; background: #141b2d;">Resolved Target Message</th>
+                        <th style="width: 10%; color: #38bdf8; background: #141b2d; text-align: center;">Save</th>
+                    </tr>
+                </thead>
+                <tbody id="archive-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="section-bookmark" class="view-section">
+        <div class="history-header">
+            <div class="title-area">
+                <h1 style="color: #f59e0b;">⭐ 저장된 중요 로그 분석 보관소</h1>
+                <p>일반 아카이브 용량 한도(30개) 제약에서 완전히 배제되어 분리 보관되며 영구 백업 보존됩니다.</p>
+            </div>
+        </div>
+
+        <div class="control-panel" style="border-color: #f59e0b; background-color: #1c1917;">
+            <div class="control-row">
+                <div style="font-size: 14px; color: #f59e0b; font-weight: bold;" id="bookmark-counter">별도 누적 저장된 주요 예외 건수: 0건</div>
+                <div style="font-size: 12px; color: #a8a29e;">✔ 이곳에서 삭제된 데이터는 메인 허브 시스템 메모리에서 완전히 영구 소멸됩니다.</div>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper" style="border-color: #78350f;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18%; color: #f59e0b; background: #1c1917;">Saved Time</th>
+                        <th style="width: 15%; color: #f59e0b; background: #1c1917;">Original Level</th>
+                        <th style="width: 22%; color: #f59e0b; background: #1c1917;">Source Location</th>
+                        <th style="width: 35%; color: #f59e0b; background: #1c1917;">Exception History Message</th>
+                        <th style="width: 10%; color: #f59e0b; background: #1c1917; text-align: center;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="bookmark-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let totalExceptionsCount = 142;
+    let currentHistoryFilter = "all"; 
+    let currentArchiveFilter = "all"; 
+    
+    let activeErrors = [
+        { id: 101, time: "2026-05-28 19:42:01", level: 1, levelName: "Level 1", file: "inference_engine.py", line: 148, message: "CUDA out of memory exception during YOLOv8 batch processing", snippet: "147:   def process_frame_batch(self, frames):\n148:>>     outputs = self.model(frames, device='cuda')" },
+        { id: 102, time: "2026-05-28 17:11:34", level: 2, levelName: "Level 2", file: "video_encryptor.py", line: 62, message: "Broken pipe error in AES-256 byte encryption streaming layer", snippet: "61:   def encrypt_and_push(self, byte_stream):\n62:>>     cipher_chunk = self.aes_cipher.encrypt(byte_stream)" },
+        { id: 103, time: "2026-05-28 14:05:12", level: 3, levelName: "Level 3", file: "network_manager.py", line: 204, message: "V50 Hub Ping Timeout - Handshake delay exceeded threshold", snippet: "203:   def check_hub_latency(self):\n204:>>     response = os.system('ping -c 1 ' + self.hub_ip)" }
+    ];
+
+    let resolvedArchive = []; // 30개 제한을 가지는 일반 해결 보관 어레이
+    let savedBookmarks = [];   // 📌 영구 저장을 위한 독립 메모리 어레이
+
+    // 1. 미해결 오류 기록 렌더러
+    function renderMainHistory() {
+        const tbody = document.getElementById("log-table-body");
+        tbody.innerHTML = "";
+
+        const filteredErrors = currentHistoryFilter === "all" 
+            ? activeErrors 
+            : activeErrors.filter(err => err.level.toString() === currentHistoryFilter);
+
+        if (filteredErrors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-row">🟢 선택한 등급에 해당하는 미해결 예외가 없습니다.</td></tr>`;
+            updateMetrics();
+            return;
+        }
+
+        filteredErrors.forEach(error => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="mono-text">${error.time}</td>
+                <td><span class="badge level-${error.level}">${error.levelName}</span></td>
+                <td>
+                    <p class="mono-text">${error.file}</p>
+                    <p class="mono-text">Line: <span class="line-number">${error.line}</span></p>
+                </td>
+                <td>
+                    <strong style="color: #e2e8f0;">${error.message}</strong>
+                    <div class="code-snippet">${error.snippet}</div>
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-resolve" onclick="resolveError(${error.id})">해결 완료</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        updateMetrics();
+    }
+
+    // 2. 해결 완료 아카이브 렌더러 (최대 30개 한도)
+    function renderArchiveView() {
+        const tbody = document.getElementById("archive-table-body");
+        tbody.innerHTML = "";
+
+        const filteredArchive = currentArchiveFilter === "all"
+            ? resolvedArchive
+            : resolvedArchive.filter(arch => arch.level.toString() === currentArchiveFilter);
+
+        if (filteredArchive.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-row" style="color:#64748b;">보관소 내 해결 로그가 없습니다.</td></tr>`;
+            return;
+        }
+
+        filteredArchive.forEach(archived => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="mono-text" style="color: #94a3b8;">${archived.resolvedTime}</td>
+                <td><span class="badge level-${archived.level}">${archived.levelName}</span><span class="badge badge-status">FIXED</span></td>
+                <td><p class="mono-text" style="color:#64748b;">${archived.file}</p><p class="mono-text" style="color:#64748b;">Line: ${archived.line}</p></td>
+                <td><p style="color: #94a3b8; font-weight:500;">${archived.message}</p></td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-bookmark" onclick="moveLogToBookmark(${archived.id})">📌 저장</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 3. 📌 [신규 추가] 중요 로그 전용 독립 렌더러 함수
+    function renderBookmarkView() {
+        const tbody = document.getElementById("bookmark-table-body");
+        tbody.innerHTML = "";
+
+        if (savedBookmarks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-row" style="color:#a8a29e;">⭐ 따로 분리 보관 처리하여 저장한 중요 예외 내역이 비어있습니다.</td></tr>`;
+            return;
+        }
+
+        savedBookmarks.forEach(bookmarked => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="mono-text" style="color: #f59e0b;">${bookmarked.savedTime}</td>
+                <td><span class="badge level-${bookmarked.level}">${bookmarked.levelName}</span><span class="badge badge-saved">SAVED</span></td>
+                <td><p class="mono-text" style="color:#a8a29e;">${bookmarked.file}</p><p class="mono-text" style="color:#a8a29e;">Line: ${bookmarked.line}</p></td>
+                <td><p style="color: #e7e5e4; font-weight:500;">${bookmarked.message}</p><span style="font-size:11px; color:#78716c;">Logged History ID: #${bookmarked.id}</span></td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-delete-permanently" onclick="deleteBookmarkPermanently(${bookmarked.id})">🗑️ 삭제</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 4. 오류 해결 처리 커맨드 파이프라인 (30개 초과 시 최하단 제거 로직 작동 코드)
+    function resolveError(id) {
+        const targetIndex = activeErrors.findIndex(err => err.id === id);
+        if (targetIndex !== -1) {
+            const targetError = activeErrors[targetIndex];
+            const now = new Date();
+            const resolvedTimestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+            const archiveRecord = {
+                id: targetError.id,
+                level: targetError.level,          
+                levelName: targetError.levelName,  
+                file: targetError.file,
+                line: targetError.line,
+                message: targetError.message,
+                resolvedTime: resolvedTimestamp
+            };
+
+            // [기존 구현 로직 검증]: 30개 한도가 도달한 상태에서 밀어내기 처리 수행
+            if (resolvedArchive.length >= 30) { 
+                resolvedArchive.pop(); // 가장 오래된 하단 배열 데이터 메모리 drop 유실 삭제
+            }
+            resolvedArchive.unshift(archiveRecord); // 신규 에러 맨 앞(위)에 삽입 추가
+
+            activeErrors = activeErrors.filter(err => err.id !== id);
+
+            renderMainHistory();
+            renderArchiveView();
+        }
+    }
+
+    // 5. 📌 [신규 추가] 아카이브 로그를 중요 저장소로 이동 및 아카이브에서 삭제 처리하는 함수
+    function moveLogToBookmark(id) {
+        const targetIndex = resolvedArchive.findIndex(arch => arch.id === id);
+        if (targetIndex !== -1) {
+            const targetLog = resolvedArchive[targetIndex];
+            const now = new Date();
+            const savedTimestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+            const bookmarkRecord = {
+                id: targetLog.id,
+                level: targetLog.level,
+                levelName: targetLog.levelName,
+                file: targetLog.file,
+                line: targetLog.line,
+                message: targetLog.message,
+                savedTime: savedTimestamp
+            };
+
+            savedBookmarks.unshift(bookmarkRecord); // 독립 중요 저장 공간으로 데이터 이동 적재
+            resolvedArchive = resolvedArchive.filter(arch => arch.id !== id); // 기존 해결 아카이브에서 완전히 삭제
+
+            // 동시 리렌더링 및 메트릭 수치 동기화
+            renderArchiveView();
+            renderBookmarkView();
+            updateMetrics();
+        }
+    }
+
+    // 6. 📌 [신규 추가] 중요 저장 공간 내에서의 개별 로그 삭제 핸들러 함수
+    function deleteBookmarkPermanently(id) {
+        if(confirm("⚠ 해당 중요 저장 로그를 영구 소멸시키겠습니까? 복구할 수 없습니다.")) {
+            savedBookmarks = savedBookmarks.filter(book => book.id !== id);
+            renderBookmarkView();
+            updateMetrics();
+        }
+    }
+
+    // 필터 체인지 모듈 라우터
+    function historyFilterChanged() { currentHistoryFilter = document.querySelector('input[name="errorFilter"]:checked').value; renderMainHistory(); }
+    function archiveFilterChanged() { currentArchiveFilter = document.querySelector('input[name="archiveFilter"]:checked').value; renderArchiveView(); }
+
+    // 메트릭 및 상단 내비 탭 배지 카운트 토탈 연산 갱신 리밸런싱
+    function updateMetrics() {
+        const highRiskCount = activeErrors.filter(err => err.level === 1 || err.level === 2).length;
+        document.getElementById("stat-total").innerText = totalExceptionsCount;
+        document.getElementById("stat-unresolved").innerText = highRiskCount;
+        document.getElementById("log-counter").innerText = `미해결 예외 인스턴스: ${activeErrors.length}개 리포트됨`;
+        
+        // 상단 네비게이션 탭의 정량 텍스트 스팬 정보 동기화 업데이트
+        document.getElementById("tab-count-archive").innerText = resolvedArchive.length;
+        document.getElementById("tab-count-bookmark").innerText = savedBookmarks.length;
+        document.getElementById("archive-counter").innerText = `보관된 해결 로그: ${resolvedArchive.length}개 / 최대 30개`;
+        document.getElementById("bookmark-counter").innerText = `별도 누적 저장된 주요 예외 건수: ${savedBookmarks.length}건`;
+
+        let healthRate = 100 - (highRiskCount * 1.2) - (activeErrors.filter(err => err.level >= 3).length * 0.4);
+        document.getElementById("stat-health").innerText = `${Math.max(healthRate, 0).toFixed(1)}%`;
+    }
+
+    // 시뮬레이션용 랜덤 모킹 생성기
+    const mockErrorPool = [
+        { level: 1, name: "Level 1", file: "kernel_binder.c", line: 89, msg: "Segmentation fault: Critical core memory violation", code: "88:  int *ptr = NULL;\n89:>> *ptr = 10;" },
+        { level: 2, name: "Level 2", file: "stream_piping.py", line: 412, msg: "NPU Hardware Accelerator Deserialization Fail", code: "411:  def load_npu_weights(path)" },
+        { level: 3, name: "Level 3", file: "auth_provider.dart", line: 55, msg: "OAuth2 Token Handshake Handshake Exception", code: "54:   final res = await http.post(authUrl);" },
+        { level: 4, name: "Level 4", file: "frame_buffer.py", line: 23, msg: "Minor Frame Drop - Video buffer queue full warning", code: "22:   self.logger.warning('Frame dropped')" },
+        { level: 5, name: "Level 5", file: "garbage_collector.js", line: 104, msg: "Garbage collection execution delayed", code: "103:  engine.gc.forceRun();" }
+    ];
+
+    function generateMockError() {
+        const randomMock = mockErrorPool[Math.floor(Math.random() * mockErrorPool.length)];
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        totalExceptionsCount++;
+        activeErrors.unshift({ id: Date.now(), time: timestamp, level: randomMock.level, levelName: randomMock.name, file: randomMock.file, line: randomMock.line, message: randomMock.msg, snippet: randomMock.code });
+        renderMainHistory(); 
+    }
+
+    // 탭 컨트롤 뷰 전환 기능 확장
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        if (viewId === 'section-history') document.getElementById('tab-history').classList.add('active');
+        if (viewId === 'section-archive') document.getElementById('tab-archive').classList.add('active');
+        if (viewId === 'section-bookmark') document.getElementById('tab-bookmark').classList.add('active');
+    }
+
+    function refreshPipeline() { alert("🔄 중앙 파이프라인 재동기화가 완료되었습니다."); renderMainHistory(); }
+
+    renderMainHistory();
+    renderArchiveView();
+    renderBookmarkView();
+</script>
+
+</body>
+</html>

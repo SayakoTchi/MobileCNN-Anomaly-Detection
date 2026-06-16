@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - Anomaly Advanced Storage Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0b111a;
+            color: #ccd6f6;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .anomaly-container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1e293b;
+            position: relative;
+            min-height: 850px;
+        }
+
+        /* 1단계 발생 시 화면 전체의 조작을 전면 차단하는 모달 락 레이어 */
+        .screen-modal-lock {
+            display: none; 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(11, 17, 26, 0.5); 
+            z-index: 999; 
+            border-radius: 12px;
+            pointer-events: auto; 
+        }
+
+        .anomaly-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .title-area h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            color: #10B981;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .title-area p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Dual Stream Cross-Viewer Layout */
+        .dual-viewer-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .video-panel {
+            background: #141b2d;
+            border: 2px solid #2d3748;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+        }
+        .video-panel.active-border { border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.3); }
+        .panel-title { font-size: 14px; font-weight: bold; color: #94a3b8; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        
+        .mock-screen {
+            width: 100%;
+            height: 260px;
+            background: #0b111a;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        /* 1단계 상황 시 영상을 가리지 않는 하단 반투명 확인/신고 팝업 */
+        .emergency-action-overlay {
+            display: none; 
+            position: absolute;
+            bottom: 45px; 
+            left: 5%;
+            width: 90%;
+            background: rgba(20, 27, 45, 0.95);
+            backdrop-filter: blur(8px);
+            border: 2px solid #f43f5e;
+            padding: 12px 18px;
+            border-radius: 8px;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+        .overlay-text { font-size: 12px; color: #f43f5e; font-weight: bold; animation: pulse 1s infinite; }
+        .overlay-btn-group { display: flex; gap: 10px; }
+        
+        .btn-overlay-click {
+            padding: 8px 18px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-overlay-ok { background: #10B981; color: #0b111a; }
+        .btn-overlay-ok:hover { background: #059669; }
+        .btn-overlay-report { background: #f43f5e; color: #ffffff; }
+        .btn-overlay-report:hover { background: #e11d48; }
+
+        /* 비디오 커스텀 하단 컨트롤 바 */
+        .video-controls {
+            width: 100%;
+            background: rgba(20, 27, 45, 0.95);
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: absolute;
+            bottom: 0; left: 0;
+            border-top: 1px solid #1e293b;
+            z-index: 5;
+        }
+        .video-timeline { flex-grow: 1; height: 4px; background: #334155; position: relative; border-radius: 2px; }
+        .timeline-progress { width: 35%; height: 100%; background: #10B981; border-radius: 2px; }
+        .btn-play-ctrl { background: transparent; border: none; color: #ccd6f6; cursor: pointer; font-size: 13px; font-weight: bold; }
+
+        /* 비디오 하단 수동 영구 저장 패널 */
+        .manual-save-bar {
+            margin-top: 12px; background: #1e293b; border-radius: 6px; padding: 10px 15px;
+            display: flex; justify-content: space-between; align-items: center; border: 1px dashed #f59e0b;
+        }
+        .btn-manual-save {
+            background: #f59e0b; color: #0b111a; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; transition: all 0.2s;
+        }
+        .btn-manual-save:hover { background: #d97706; box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+
+        /* 대시보드 스탯 카드 */
+        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
+        .card { background: #141b2d; border: 1px solid #1e293b; border-radius: 8px; padding: 15px 20px; }
+        .card .label { font-size: 12px; color: #64748b; text-transform: uppercase; }
+        .card .value { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; color: #e2e8f0; margin-top: 5px; }
+        .card .value.danger { color: #f43f5e; }
+
+        .control-panel { background-color: #141b2d; border: 1px solid #1e293b; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .control-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
+        .btn-action { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 8px 14px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .btn-action:hover { background: #334155; color: #fff; }
+        #btn-trigger { background: rgba(244, 63, 94, 0.1); border-color: #f43f5e; color: #f43f5e; font-weight: bold; }
+
+        /* 다운로드 및 삭제 버튼 */
+        .btn-download { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-download:hover { background: #38bdf8; color: #0b111a; }
+        .btn-delete { background: rgba(244, 63, 94, 0.15); border: 1px solid #f43f5e; color: #f43f5e; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-delete:hover { background: #f43f5e; color: #0b111a; }
+
+        /* 내비게이션 탭 */
+        .navigation-tabs {
+            display: flex; gap: 8px; margin-bottom: 16px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px; scrollbar-width: none;
+        }
+        .navigation-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab {
+            padding: 10px 16px; background: #141b2d; border: 1px solid #1e293b; border-radius: 6px;
+            color: #94a3b8; font-size: 13px; font-weight: 600; cursor: pointer;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .nav-tab.active { background: #1e293b; border-color: #10B981; color: #10B981; }
+
+        /* 테이블 구조 */
+        .log-table-wrapper { background: #141b2d; border: 1px solid #1e293b; border-radius: 8px; overflow-x: auto; margin-bottom: 25px; }
+        table { min-width: 520px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #1e293b; color: #10B981; font-size: 13px; font-weight: 500; padding: 14px 16px; }
+        td { padding: 14px 16px; border-bottom: 1px solid #1e293b; font-size: 13px; color: #cbd5e1; vertical-align: top; }
+        
+        .mono-text { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; color: #38bdf8; }
+        .badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        
+        /* 단계별 색상 매핑 */
+        .level-1 { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid #f43f5e; }
+        .level-2 { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid #f97316; }
+        .level-3 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+        
+        .empty-row { text-align: center; padding: 40px !important; color: #64748b; font-size: 13px; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* 상단 뒤로가기 버튼 */
+        .back-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 12px;
+        }
+        .btn-back-home {
+            background: transparent; border: 1px solid #334155; color: #94a3b8;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-back-home:hover { background: #1e293b; color: #ccd6f6; }
+
+        /* ─── 모바일 반응형 ─── */
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .anomaly-container { padding: 12px; border-radius: 8px; }
+
+            .anomaly-header {
+                flex-direction: column; align-items: flex-start; gap: 8px;
+                padding-bottom: 12px; margin-bottom: 16px;
+            }
+            .title-area h1 { font-size: 15px; gap: 6px; }
+            .title-area p { font-size: 11px; }
+
+            /* 듀얼 뷰어 → 단일 열 */
+            .dual-viewer-layout {
+                grid-template-columns: 1fr;
+                gap: 14px; margin-bottom: 16px;
+            }
+            .mock-screen { height: 200px; }
+
+            /* 스탯 카드 2열 */
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px; margin-bottom: 16px;
+            }
+            .card { padding: 10px 12px; }
+            .card .value { font-size: 18px; }
+            .card .value[id="stat-auto-buffer"] { font-size: 11px; line-height: 1.5; }
+
+            .control-panel { padding: 10px; gap: 8px; margin-bottom: 14px; }
+            .control-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            #btn-trigger { font-size: 11px; padding: 6px 10px; width: 100%; }
+
+            .manual-save-bar { flex-direction: column; gap: 8px; align-items: flex-start; }
+            .btn-manual-save { width: 100%; text-align: center; }
+
+            .overlay-btn-group { flex-direction: column; gap: 6px; }
+            .btn-overlay-click { width: 100%; padding: 10px; font-size: 13px; }
+
+            th { padding: 10px 8px; font-size: 12px; }
+            td { padding: 10px 8px; font-size: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .summary-cards { grid-template-columns: 1fr; }
+            .nav-tab { font-size: 11px; padding: 8px 10px; }
+            .panel-title { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="anomaly-container">
+
+    <div class="back-bar">
+        <button class="btn-back-home" onclick="location.href='./index.html'">← 대시보드</button>
+        <span style="font-size:12px; color:#475569;">EDGE-VISION HUB</span>
+    </div>
+
+    <div class="screen-modal-lock" id="modal-barrier"></div>
+
+    <div class="navigation-tabs" id="main-nav-tabs">
+        <div class="nav-tab active" id="tab-anomaly" onclick="switchView('section-anomaly')">🛡️ AI 실시간 배회 탐지 분석기</div>
+        <div class="nav-tab" id="tab-storage" onclick="switchView('section-storage')" style="border-color: #38bdf8; color: #38bdf8;">📁 비디오 보관소 (단계별 최대 5개 자동 제어 / 영구 저장 공간) (<span id="count-storage">0</span>)</div>
+        <div class="nav-tab" id="tab-audit" onclick="switchView('section-audit')" style="border-color: #a855f7; color: #a855f7;">📋 비디오 다운로드 감사 로그</div>
+    </div>
+
+    <div id="section-anomaly" class="view-section active">
+        <div class="anomaly-header">
+            <div class="title-area">
+                <h1>👁️ EDGE-VISION HUB - Anomaly Multi-Tier Storage System</h1>
+                <p>배회 모듈 가동 중: 임시 저장은 단계별 5개 한계 정책 작동, 영구 저장은 별도 공간 무제한 할당</p>
+            </div>
+            <div id="audio-alert-bar" style="display:none; background:#f43f5e; color:#0b111a; padding:6px 14px; border-radius:4px; font-weight:bold; font-size:12px;"></div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="label">최근 수신 이벤트 신뢰도</div>
+                <div class="value" id="stat-confidence" style="color: #38bdf8;">0.0%</div>
+            </div>
+            <div class="card">
+                <div class="label">알람 통제 위험도 등급</div>
+                <div class="value" id="stat-alert-status">대기 중 (READY)</div>
+            </div>
+            <div class="card">
+                <div class="label">임시 버퍼 실시간 점유율 (각 최대 5개)</div>
+                <div class="value" id="stat-auto-buffer" style="color: #f59e0b; font-size: 14px; font-family: monospace; line-height: 1.4;">
+                    1단계: 0/5 | 2단계: 0/5 | 3단계: 0/5
+                </div>
+            </div>
+        </div>
+
+        <div class="dual-viewer-layout">
+            <div class="video-panel" id="panel-snapshot">
+                <div class="panel-title">📸 [과거 판단 시점] AI가 70% 이상 임계치 일치로 캡처한 스냅샷</div>
+                <div class="mock-screen">
+                    <p id="snapshot-placeholder" style="color:#475569; font-size:13px; text-align:center; padding:10px;">이상 징후 포착 시 데이터가 하단 목록과 교차 바인딩됩니다.</p>
+                    
+                    <div class="emergency-action-overlay" id="emergency-panel">
+                        <span class="overlay-text">🚨 [인식 대기] 1단계 비상 경보 가동: 상황 인지 확인이 필요합니다.</span>
+                        <div class="overlay-btn-group">
+                            <button class="btn-overlay-click btn-overlay-ok" onclick="handleEmergencyAction('확인 완료')">확인</button>
+                            <button class="btn-overlay-click btn-overlay-report" onclick="handleEmergencyAction('보안 관제실 즉시 신고')">신고</button>
+                        </div>
+                    </div>
+
+                    <div class="video-controls" id="snapshot-controls" style="display:none;">
+                        <button class="btn-play-ctrl" id="btn-play-pause" onclick="togglePlayback()">⏸ 일시정지</button>
+                        <div class="video-timeline"><div class="timeline-progress"></div></div>
+                        <span style="font-size:11px; font-family:monospace; color:#94a3b8; margin-left:5px;">00:03 / 00:10</span>
+                    </div>
+                </div>
+                
+                <div class="manual-save-bar" id="save-control-board" style="display:none;">
+                    <span style="font-size:12px; color:#f59e0b; font-weight: bold;">⭐ 별도 저장 스페이스 독립 할당 프로토콜 (무제한 저장 가능)</span>
+                    <button class="btn-manual-save" id="btn-core-manual-save" onclick="executeManualSave()">💾 영구 저장 버튼 클릭</button>
+                </div>
+            </div>
+
+            <div class="video-panel" id="panel-live">
+                <div class="panel-title">🎥 [현재 촬영 시점] CCTV 실시간 피드 (Live Feed Stream)</div>
+                <div class="mock-screen">
+                    <div id="live-indicator" style="position:absolute; top:10px; left:10px; background:#10B981; color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">LIVE</div>
+                    <p style="color:#10B981; font-weight:bold; font-size:14px;" id="live-text">Edge Node 네트워크 정상 바인딩 중</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-row">
+                <button class="btn-action" id="btn-trigger" onclick="simulateAnomalyEngine()">💥 [시뮬레이션] 무작위 배회 신뢰도 덤프 테스트</button>
+                <div style="font-size: 13px; color: #94a3b8;">최근 수신 알림 중요도 연동 상태 가동 중</div>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">이상징후 탐지 일시</th>
+                        <th style="width: 20%;">실시간 위험도</th>
+                        <th style="width: 55%;">YOLOv8 단일 배회 데이터셋 부합도 및 분석 스펙트럼 요약</th>
+                    </tr>
+                </thead>
+                <tbody id="anomaly-table-body">
+                    <tr><td colspan="3" class="empty-row">덤프 버튼을 누르면 영상 파일 유무와 관계없이 관제 목록이 실시간으로 빌드됩니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="section-storage" class="view-section">
+        <div class="history-header">
+            <div class="title-area">
+                <h1>📁 저장된 이상징후 비디오 보관소 (단계별 최대 5개 자동 제어 / 영구 무제한 스페이스)</h1>
+                <p>임시 백업은 각 단계별로 최대 5개까지만 축적되며 초과 시 삭제됩니다. **영구 저장을 누른 영상은 별도 공간에 갯수 제한 없이 무제한 저장**됩니다.</p>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper" style="border-color: #334155;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%; color: #38bdf8; background: #141b2d;">촬영 및 저장 일시</th>
+                        <th style="width: 22%; color: #38bdf8; background: #141b2d;">스토리지 할당 정책 종류</th>
+                        <th style="width: 33%; color: #38bdf8; background: #141b2d;">추출 비디오 엔티티 파일 정보 명세</th>
+                        <th style="width: 20%; color: #38bdf8; background: #141b2d; text-align: center;">다운로드 / 삭제 선택</th>
+                    </tr>
+                </thead>
+                <tbody id="storage-table-body">
+                    <tr><td colspan="4" class="empty-row">보관 처리된 정황 입증용 비디오 인스턴스가 존재하지 않습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="section-audit" class="view-section">
+        <div class="history-header">
+            <div class="title-area">
+                <h1>📋 비디오 다운로드 트래킹 감사 로그 (Audit Trail)</h1>
+                <p>보관소 내부의 영상 데이터가 반출(다운로드)될 때마다 촬영 시점과 반출 집행 시점 타임라인을 영구 대조 추적 기록합니다.</p>
+            </div>
+        </div>
+
+        <div class="log-table-wrapper" style="border-color: #581c87;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%; color: #a855f7; background: #2e1065;">감사 로깅 일시 (Event Time)</th>
+                        <th style="width: 25%; color: #a855f7; background: #2e1065;">원본 비디오 촬영 일시</th>
+                        <th style="width: 35%; color: #a855f7; background: #2e1065;">다운로드 대상 파일 명세</th>
+                        <th style="width: 15%; color: #a855f7; background: #2e1065;">추적 상태</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body">
+                    <tr><td colspan="4" class="empty-row">보안 규약에 의거한 다운로드 추적 이력 로그가 비어있습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let activeAnomalies = [];
+    let permanentStorage = []; // 통합 비디오 스토리지 디렉토리 저장 공간 어레이
+    let auditTrailLogs = [];   
+    let alarmTimer = null;     
+    let currentFocusLog = null; 
+    let isModalLocked = false; 
+
+    const mockBehaviorSpecs = [
+        { level: 1, name: "1단계 (최고위험)", score: "96.4%", text: "🚨 [위험 배회] 귀중품 구역 내 타겟 누적 상주 시간 한계치 초과 (YOLOv8: Wanderer 96.4%)" },
+        { level: 2, name: "2단계 (주요경보)", score: "84.2%", text: "🔸 [경보 배회] 외곽 윈도우 가이드라인 주변 반복 궤적 센싱 완료 (YOLOv8: Wanderer 84.2%)" },
+        { level: 3, name: "3단계 (일반주의)", score: "71.5%", text: "💛 [주의 배회] 제한 보안 경계 구역 내 슬로우 모션 객체 포착 (YOLOv8: Wanderer 71.5%)" }
+    ];
+
+    function generateFullTimestamp() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    }
+
+    function triggerAdaptiveAlarmSystem(log) {
+        clearInterval(alarmTimer); 
+        const alertBar = document.getElementById("audio-alert-bar");
+        const emergencyPanel = document.getElementById("emergency-panel");
+        const modalBarrier = document.getElementById("modal-barrier");
+        
+        alertBar.style.display = "block";
+        emergencyPanel.style.display = "none"; 
+        modalBarrier.style.display = "none"; 
+        isModalLocked = false;
+
+        if (log.level === 3) {
+            alertBar.style.background = "#f59e0b";
+            alertBar.innerHTML = `🔔 [단발성 알림] 3단계 주의 수신: 단일 푸시 메시지 전송 처리 완료 (${log.confidence})`;
+        } 
+        else if (log.level === 2) {
+            let fireCount = 0;
+            alertBar.style.background = "#f97316";
+            alertBar.innerHTML = "⏳ [주기적 경보] 2단계: 일정 간격 반복 알람 가동 시작...";
+            
+            alarmTimer = setInterval(() => {
+                fireCount++;
+                alertBar.innerHTML = `🔊 경고! [2단계 알람 일정 간격 울림 중] (횟수: ${fireCount} / 3회)`;
+                if (fireCount >= 3) {
+                    clearInterval(alarmTimer);
+                    alertBar.innerHTML = "✅ [알람 완료] 2단계 지정 간격 알람 사이클이 만료되었습니다.";
+                    alertBar.style.background = "#141b2d";
+                }
+            }, 2000);
+        } 
+        else if (log.level === 1) {
+            alertBar.style.background = "#f43f5e";
+            alertBar.style.color = "#0b111a";
+            alertBar.innerHTML = "🚨🚨 [EMERGENCY LOCK] 1단계 최고위험 전면 잠금락 발동: 하단 오버레이 확인 전까지 제어 불가.";
+            
+            emergencyPanel.style.display = "flex"; 
+            modalBarrier.style.display = "block";  
+            isModalLocked = true;                  
+        }
+    }
+
+    function handleEmergencyAction(actionName) {
+        clearInterval(alarmTimer);
+        document.getElementById("modal-barrier").style.display = "none"; 
+        document.getElementById("emergency-panel").style.display = "none"; 
+        isModalLocked = false; 
+        
+        const alertBar = document.getElementById("audio-alert-bar");
+        alertBar.style.background = "#141b2d";
+        alertBar.style.color = "#ccd6f6";
+        alertBar.innerHTML = `✔ [안전 통제 승인]: "${actionName}" 수락으로 시스템 락이 안전하게 해제되었습니다.`;
+    }
+
+    function simulateAnomalyEngine() {
+        if (isModalLocked) {
+            alert("🔒 시스템 락 가동 중: 1단계 비상 경보 확인 또는 신고 처리를 수락하기 전에는 다른 조작을 할 수 없습니다.");
+            return;
+        }
+
+        const selected = mockBehaviorSpecs[Math.floor(Math.random() * mockBehaviorSpecs.length)];
+        const fullTimeStr = generateFullTimestamp(); 
+        
+        const currentId = Date.now();
+        currentFocusLog = {
+            id: currentId,
+            time: fullTimeStr, 
+            level: selected.level,
+            levelName: selected.name,
+            message: selected.text,
+            confidence: selected.score
+        };
+
+        activeAnomalies.unshift(currentFocusLog);
+
+        document.getElementById("stat-confidence").innerText = selected.score;
+        document.getElementById("stat-alert-status").innerText = selected.name;
+
+        const placeholder = document.getElementById("snapshot-placeholder");
+        placeholder.innerHTML = `<span style='color:#38bdf8; font-weight:bold; font-family:monospace;'>[YOLOv8 추론 신뢰도 매칭 피드: ${selected.score}]</span><br><br><span style='font-size:12px; color:#cbd5e1;'>${selected.text}</span>`;
+        
+        document.getElementById("snapshot-controls").style.display = "flex"; 
+        document.getElementById("save-control-board").style.display = "flex"; 
+
+        if(selected.level === 1) {
+            document.getElementById("panel-snapshot").classList.add("active-border");
+            document.getElementById("live-text").innerHTML = "🚨 1단계 최고 등급 도난/침입 위험 징후 트래킹 중";
+            document.getElementById("live-text").style.color = "#f43f5e";
+            document.getElementById("live-indicator").style.background = "#f43f5e";
+        } else {
+            document.getElementById("panel-snapshot").classList.remove("active-border");
+            document.getElementById("live-text").innerHTML = "🟢 Edge 카메라 실시간 렌더링 정상 가동 중";
+            document.getElementById("live-text").style.color = "#10B981";
+            document.getElementById("live-indicator").style.background = "#10B981";
+        }
+
+        triggerAdaptiveAlarmSystem(currentFocusLog);
+        
+        // 🚨 [요구사항 핵심 제어 1]: 덤프 탐지 시 '단계별 각 최대 5개 한도' 자동 버퍼에 우선 적재 기동
+        executeAutomaticBufferSave(currentFocusLog);
+        
+        renderAnomalyTable();
+    }
+
+    // 🚨 [요구사항 핵심 반영 1] 각 단계별로 최대 5개까지만 임시 자동 적재하는 조건절 큐 알고리즘
+    function executeAutomaticBufferSave(log) {
+        if(permanentStorage.some(file => file.id === log.id)) return;
+
+        const autoPayload = {
+            id: log.id,
+            time: log.time, 
+            level: log.level,
+            levelName: log.levelName,
+            message: log.message,
+            saveType: `임시 자동 백업 (${log.level}단계 전용)`, // 단계별 꼬리표 마샬링
+            fileName: `EV_TEMP_LV${log.level}_${log.id}.mp4`
+        };
+
+        // 전체 스토리지 내부에서 현재 수신된 로그와 '동일한 등급'을 가진 '임시 자동 백업' 데이터 배열만 정밀 추출
+        const levelSpecificLogs = permanentStorage.filter(f => 
+            f.saveType.includes("임시 자동 백업") && f.level === log.level
+        );
+        
+        // 📌 [핵심] 해당 단계의 임시 비디오가 이미 5개 이상 적재되어 있다면, 그 단계 내에서 가장 오래된 것만 스왑 파기!
+        if (levelSpecificLogs.length >= 5) {
+            const oldestLevelLog = levelSpecificLogs[levelSpecificLogs.length - 1]; // 해당 등급 내부의 말단 데이터 타겟팅
+            permanentStorage = permanentStorage.filter(f => f.id !== oldestLevelLog.id); // 제거 확정
+        }
+
+        permanentStorage.push(autoPayload); // 임시 드라이브에 마운트
+        renderStorageTable();
+    }
+
+    // 🚨 [요구사항 핵심 반영 2] 영구 저장을 눌렀을 때는 개수 제한이 없는 독자 저장 공간 전면 할당
+    function executeManualSave() {
+        if (!currentFocusLog) return;
+
+        // 혹시 이미 '임시 자동 백업' 풀에 들어가 있었던 동일 ID 에셋이라면, 30개 및 5개 카운트 소쇄 유실 방지를 위해 임시 풀에서 삭제
+        permanentStorage = permanentStorage.filter(f => f.id !== currentFocusLog.id);
+
+        const manualPayload = {
+            id: currentFocusLog.id,
+            time: currentFocusLog.time, 
+            level: currentFocusLog.level,
+            levelName: currentFocusLog.levelName,
+            message: currentFocusLog.message,
+            saveType: "💾 영구 지정 보존소 (무제한 할당)", // 📌 독자 저장소 격리 명세 라벨링
+            fileName: `EV_PERMANENT_SECURE_${currentFocusLog.id}.mp4`
+        };
+
+        // 영구 소장 데이터이므로 테이블 최상단 정렬 배치
+        permanentStorage.unshift(manualPayload); 
+        alert("💾 [독자 저장소 영구 할당 완료]\n\n해당 비디오는 '단계별 5개 한도 제한 정책'에서 영구히 배제되어 개수 제한 없이 무제한 저장됩니다.");
+        
+        renderStorageTable();
+    }
+
+    function renderAnomalyTable() {
+        const tbody = document.getElementById("anomaly-table-body");
+        tbody.innerHTML = "";
+
+        activeAnomalies.forEach(anom => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="mono-text" style="color: #a0aec0;">${anom.time}</td>
+                <td><span class="badge level-${anom.level}">${anom.levelName}</span></td>
+                <td><strong>${anom.message}</strong></td>
+            `;
+            tbody.appendChild(row);
+        });
+        updateMetrics();
+    }
+
+    function renderStorageTable() {
+        const tbody = document.getElementById("storage-table-body");
+        tbody.innerHTML = "";
+
+        if (permanentStorage.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">보관 처리된 정황 입증용 비디오 인스턴스가 존재하지 않습니다.</td></tr>`;
+            updateMetrics();
+            return;
+        }
+
+        permanentStorage.forEach(file => {
+            const row = document.createElement("tr");
+            // 영구 무제한과 임시 5개 공간의 시각적 구분자 색상 컬러링
+            const typeColor = file.saveType.includes("영구") ? "#f59e0b" : "#38bdf8";
+
+            row.innerHTML = `
+                <td class="mono-text" style="color: #a0aec0;">${file.time}</td>
+                <td style="color: ${typeColor}; font-weight: bold; font-size:12px;">${file.saveType}</td>
+                <td>
+                    <span class="badge level-${file.level}" style="font-size:10px; padding:1px 4px;">${file.levelName}</span>
+                    <span style="color:#e2e8f0; font-weight:500; font-family:monospace; margin-left:5px;">${file.fileName}</span>
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <button class="btn-download" onclick="downloadVideoWithTracking(${file.id})">💾 다운로드</button>
+                    <button class="btn-delete" onclick="deleteVideoInstance(${file.id})">🗑️ 삭제</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        updateMetrics();
+    }
+
+    function downloadVideoWithTracking(id) {
+        const file = permanentStorage.find(f => f.id === id);
+        if(file) {
+            const auditTimestamp = generateFullTimestamp(); 
+            const auditRecord = {
+                id: Date.now(),
+                eventTime: auditTimestamp, 
+                shotTime: file.time,       
+                fileName: file.fileName
+            };
+
+            auditTrailLogs.unshift(auditRecord); 
+            renderAuditTable();
+            alert(`📥 [다운로드 로그 기록]\n파일명: ${file.fileName}\n감사 로그 저장소(Audit Trail)에 정합성이 기록되었습니다.`);
+        }
+    }
+
+    function renderAuditTable() {
+        const tbody = document.getElementById("audit-table-body");
+        tbody.innerHTML = "";
+
+        if (auditTrailLogs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">보안 규약에 의거한 다운로드 추적 이력 로그가 비어있습니다.</td></tr>`;
+            return;
+        }
+
+        auditTrailLogs.forEach(log => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="mono-text" style="color:#a855f7;">${log.eventTime}</td>
+                <td class="mono-text" style="color:#94a3b8;">${log.shotTime}</td>
+                <td style="font-family:monospace; color:#cbd5e1;">${log.fileName}</td>
+                <td><span style="color:#10B981; font-weight:bold; font-size:11px;">✔ TRACKED & SECURED</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function deleteVideoInstance(id) {
+        if(confirm("지정된 암호화 파일 세션을 로컬 하드 디스크에서 완전히 영구 파기하시겠습니까?")) {
+            permanentStorage = permanentStorage.filter(f => f.id !== id);
+            renderStorageTable();
+        }
+    }
+
+    let isVideoPlaying = true;
+    function togglePlayback() {
+        const btn = document.getElementById("btn-play-pause");
+        if(isVideoPlaying) {
+            isVideoPlaying = false;
+            btn.innerHTML = "▶ 다시 재생";
+            btn.style.color = "#10B981";
+        } else {
+            isVideoPlaying = true;
+            btn.innerHTML = "⏸ 일시정지";
+            btn.style.color = "#ccd6f6";
+        }
+    }
+
+    // 스탯 보드 판넬에 단계별 5개 리밋 한도 점유 현황 역산 갱신
+    function updateMetrics() {
+        const lv1Count = permanentStorage.filter(f => f.saveType.includes("임시 자동") && f.level === 1).length;
+        const lv2Count = permanentStorage.filter(f => f.saveType.includes("임시 자동") && f.level === 2).length;
+        const lv3Count = permanentStorage.filter(f => f.saveType.includes("임시 자동") && f.level === 3).length;
+
+        document.getElementById("count-storage").innerText = permanentStorage.length;
+        document.getElementById("stat-auto-buffer").innerHTML = `1단계: ${lv1Count}/5 | 2단계: ${lv2Count}/5 | 3단계: ${lv3Count}/5`;
+        document.getElementById("log-counter").innerText = `미확인 이상 징후 로그: ${activeAnomalies.length}건 대기 중`;
+    }
+
+    function switchView(viewId) {
+        if (isModalLocked) {
+            alert("🔒 상단 내비게이션 접근 제한: 최고위험(1단계) 상황 인지 확인 절차를 완료하기 전까지는 다른 탭으로 이탈할 수 없습니다.");
+            return;
+        }
+
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        if (viewId === 'section-anomaly') document.getElementById('tab-anomaly').classList.add('active');
+        if (viewId === 'section-storage') document.getElementById('tab-storage').classList.add('active');
+        if (viewId === 'section-audit') document.getElementById('tab-audit').classList.add('active');
+    }
+
+    renderAnomalyTable();
+    renderStorageTable();
+    renderAuditTable();
+</script>
+
+</body>
+</html>

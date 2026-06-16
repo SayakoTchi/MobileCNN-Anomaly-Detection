@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg: #071013;
+            --panel: #0f1f24;
+            --panel-soft: #13292f;
+            --line: #26434a;
+            --mint: #36d399;
+            --amber: #f4b942;
+            --danger: #fb7185;
+            --text: #e8f3f4;
+            --muted: #91a8ad;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            padding-bottom: 78px;
+        }
+
+        .bg-panel {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+        }
+
+        .text-mint { color: var(--mint); }
+        .btn-mint { background-color: var(--mint); color: #03110c; border-color: var(--mint); }
+        .btn-mint:hover { background-color: #66e7b6; color: #03110c; border-color: #66e7b6; }
+
+        .topbar {
+            background-color: rgba(15, 31, 36, 0.96);
+            border-bottom: 1px solid var(--line);
+            backdrop-filter: blur(10px);
+        }
+
+        .metric {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 112px;
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-placeholder {
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .page-content {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .page-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .event-item {
+            display: grid;
+            grid-template-columns: minmax(0, 130px) 1fr;
+            gap: 1rem;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--mint);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+
+        .event-item.border-danger { border-left-color: var(--danger) !important; }
+        .event-item.border-success { border-left-color: var(--mint) !important; }
+        .event-item.event-compact { grid-template-columns: 1fr; }
+
+        .event-thumb {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #020617;
+        }
+
+        .event-body { min-width: 0; }
+
+        .empty-state {
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0;
+            text-align: center;
+        }
+
+        .detect-preview {
+            width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #020617;
+        }
+
+        .bottom-nav {
+            background-color: rgba(15, 31, 36, 0.98);
+            border-top: 1px solid var(--line);
+            z-index: 1000;
+        }
+
+        .nav-link {
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active { color: var(--mint); }
+        .nav-link i { font-size: 1.25rem; display: block; margin-bottom: 2px; }
+
+        .form-control,
+        .form-select {
+            background-color: #08171b;
+            border-color: var(--line);
+            color: var(--text);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #08171b;
+            border-color: var(--mint);
+            color: var(--text);
+            box-shadow: 0 0 0 0.2rem rgba(54, 211, 153, 0.16);
+        }
+
+        @media (max-width: 640px) {
+            .event-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar sticky-top">
+        <div class="container-fluid mx-auto d-flex justify-content-between align-items-center gap-3 py-3" style="max-width: 1040px;">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock-fill text-mint fs-4"></i>
+                <h1 class="h5 mb-0 fw-bold">EDGE-VISION</h1>
+                <span class="badge rounded-pill text-bg-success">V50 HUB</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span id="node-status-badge" class="badge rounded-pill text-bg-secondary">Unknown</span>
+                <span class="text-secondary small"><i class="bi bi-clock me-1"></i><span id="current-time-display">--:--</span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid mx-auto px-3 py-4" style="max-width: 1040px;">
+        <section class="bg-panel rounded-3 p-3 mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-lg-7">
+                    <label for="v50-base-url" class="form-label small text-secondary">V50 Edge Node Base URL</label>
+                    <input id="v50-base-url" class="form-control" type="url" placeholder="http://192.168.216.133:8080">
+                </div>
+                <div class="col-6 col-lg-auto">
+                    <button id="save-base-url" class="btn btn-outline-light w-100" type="button">
+                        <i class="bi bi-save me-1"></i>저장
+                    </button>
+                </div>
+                <div class="col-6 col-lg-auto">
+                    <button id="ping-node" class="btn btn-mint w-100" type="button">
+                        <i class="bi bi-wifi me-1"></i>Ping
+                    </button>
+                </div>
+            </div>
+            <p id="health-message" class="text-secondary small mb-0 mt-2">V50 노드 상태를 확인해 주세요.</p>
+        </section>
+
+        <div id="notice" class="alert alert-info py-2 px-3 mb-3" hidden></div>
+
+        <main id="page-dashboard" class="page-content active">
+            <section class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <p class="text-secondary small mb-1">CAMERA 1</p>
+                        <h2 class="h5 mb-0">Live Stream</h2>
+                    </div>
+                    <span class="badge text-bg-secondary">준비 중</span>
+                </div>
+                <div class="video-container">
+                    <div class="video-placeholder">
+                        <i class="bi bi-camera-video-off fs-2 d-block mb-2"></i>
+                        V50 노드 연결 후 스트림이 표시됩니다
+                    </div>
+                </div>
+            </section>
+
+            <section class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-activity text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">TIMELINE EVENTS</p>
+                        <strong id="event-count" class="fs-4">0</strong>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-clock-history text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">LAST EVENT</p>
+                        <strong id="last-event-time" class="d-block text-truncate">-</strong>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="metric">
+                        <i class="bi bi-cpu text-mint fs-4"></i>
+                        <p class="text-secondary small mb-1 mt-2">AI NODE</p>
+                        <strong>V50 NPU</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row g-3">
+                <div class="col-12 col-lg-5">
+                    <div class="bg-panel rounded-3 p-3 h-100">
+                        <h3 class="h6 mb-3">Inference Controls</h3>
+                        <form id="config-form" class="mb-4">
+                            <label for="threshold-input" class="form-label small text-secondary">Anomaly Threshold</label>
+                            <div class="input-group">
+                                <input id="threshold-input" class="form-control" type="number" min="0" max="1" step="0.01" value="0.70">
+                                <button id="apply-threshold" class="btn btn-outline-light" type="submit">
+                                    <i class="bi bi-sliders me-1"></i>적용
+                                </button>
+                            </div>
+                        </form>
+
+                        <form id="detect-form">
+                            <label for="frame-file" class="form-label small text-secondary">Frame Binary Upload</label>
+                            <input id="frame-file" class="form-control mb-2" type="file" accept="image/*">
+                            <button id="run-detect" class="btn btn-mint w-100" type="submit">
+                                <i class="bi bi-bounding-box-circles me-1"></i>Detect
+                            </button>
+                        </form>
+                        <div id="detect-result" class="bg-panel rounded-3 p-3 mt-3" hidden></div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-7">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h3 class="h6 mb-0">Recent Events</h3>
+                        <button id="refresh-timeline" class="btn btn-sm btn-outline-light" type="button">
+                            <i class="bi bi-arrow-clockwise me-1"></i>갱신
+                        </button>
+                    </div>
+                    <div id="recent-events" class="d-flex flex-column gap-2"></div>
+                </div>
+            </section>
+        </main>
+
+        <main id="page-history" class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Timeline</h2>
+                <span class="text-secondary small">/api/timeline</span>
+            </div>
+            <div id="history-list" class="d-flex flex-column gap-3"></div>
+        </main>
+
+        <main id="page-anomaly" class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Anomaly Alerts</h2>
+                <span class="text-secondary small">confidence >= 80%</span>
+            </div>
+            <div id="anomaly-list" class="d-flex flex-column gap-3"></div>
+        </main>
+
+        <main id="page-devices" class="page-content">
+            <h2 class="h5 mb-3">Connected Devices</h2>
+            <section class="bg-panel rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <p class="text-secondary small mb-1">AI COMPUTE NODE</p>
+                        <h3 class="h6 mb-1"><i class="bi bi-phone-fill text-mint me-2"></i>LG V50 ThinQ</h3>
+                        <p class="text-secondary small mb-0">NPU 기반 온디바이스 추론 노드</p>
+                    </div>
+                    <span id="device-online-badge" class="badge rounded-pill text-bg-secondary">Ping 필요</span>
+                </div>
+            </section>
+        </main>
+
+        <main id="page-settings" class="page-content">
+            <h2 class="h5 mb-3">Settings</h2>
+            <section class="bg-panel rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-center gap-3">
+                    <div>
+                        <p class="text-secondary small mb-1">AI MODEL HOT SWAP</p>
+                        <h3 class="h6 mb-1">현재 모델 교체 요청</h3>
+                        <p class="text-secondary small mb-0">V50 노드의 /api/model/swap 엔드포인트를 호출합니다.</p>
+                    </div>
+                    <button id="swap-model" class="btn btn-outline-warning" type="button">
+                        <i class="bi bi-arrow-repeat me-1"></i>교체
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <nav class="bottom-nav fixed-bottom w-100 px-3 py-2 d-flex justify-content-center gap-4">
+        <button data-page-target="dashboard" class="nav-link active btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-grid-1x2-fill"></i>Dashboard
+        </button>
+        <a href="./History.html" class="nav-link btn btn-link text-decoration-none p-0">
+            <i class="bi bi-clock-history"></i>History
+        </a>
+        <a href="./Anomaly.html" class="nav-link btn btn-link text-decoration-none p-0">
+            <i class="bi bi-exclamation-triangle"></i>Anomaly
+        </a>
+        <button data-page-target="devices" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-phone"></i>Devices
+        </button>
+        <button data-page-target="settings" class="nav-link btn btn-link text-decoration-none p-0" type="button">
+            <i class="bi bi-gear"></i>Settings
+        </button>
+    </nav>
+
+    <!-- Flask 문법 제거 → 로컬 파일 경로로 변경 -->
+    <script type="module" src="./js/dashboard.mjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
