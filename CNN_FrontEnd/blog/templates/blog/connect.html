@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE-VISION HUB - Connect</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #0b111a;
+            color: #ccd6f6;
+            font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background-image:
+                radial-gradient(circle at 15% 45%, rgba(16, 185, 129, 0.08), transparent 26%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08), transparent 28%);
+        }
+
+        .connect-container {
+            width: 100%;
+            max-width: 440px;
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 38px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connect-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #38bdf8);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-mark {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            margin: 0 auto 14px;
+            background: linear-gradient(135deg, #10b981, #38bdf8);
+            color: #061118;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: 0;
+        }
+
+        .logo-area h1 {
+            font-size: 25px;
+            color: #10b981;
+            font-weight: 800;
+            letter-spacing: 0;
+            margin-bottom: 8px;
+        }
+
+        .logo-area p {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: #141b2d;
+            border: 1px solid #2d3748;
+            color: #e2e8f0;
+            padding: 14px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #10b981;
+            background-color: #0b111a;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+        }
+
+        .form-control::placeholder {
+            color: #475569;
+        }
+
+        .hint {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            width: 100%;
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #10b981;
+            color: #061118;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #38bdf8;
+            border: 1px solid #24546a;
+        }
+
+        .btn-danger {
+            background-color: transparent;
+            color: #fb7185;
+            border: 1px solid rgba(251, 113, 133, 0.45);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary:hover {
+            background-color: #34d399;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(56, 189, 248, 0.08);
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(251, 113, 133, 0.08);
+        }
+
+        .status-box {
+            margin-top: 24px;
+            border-top: 1px dashed #1e293b;
+            padding-top: 18px;
+            font-family: Consolas, "SFMono-Regular", monospace;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        .status-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            margin-top: 6px;
+            border-radius: 50%;
+            background-color: #10b981;
+            flex: 0 0 auto;
+        }
+
+        .status-dot.error {
+            background-color: #fb7185;
+        }
+
+        .status-dot.warn {
+            background-color: #f4b942;
+        }
+
+        .status-text {
+            word-break: break-all;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 16px;
+            }
+
+            .connect-container {
+                padding: 34px 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="connect-container">
+        <section class="logo-area">
+            <div class="logo-mark">EV</div>
+            <h1>EDGE-VISION HUB</h1>
+            <p>관제 서버 연결 설정<br>접속 가능한 서버 주소를 입력하세요.</p>
+        </section>
+
+        <form id="connect-form">
+            <div class="form-group">
+                <label for="server-url" class="form-label">Server URL</label>
+                <input
+                    id="server-url"
+                    class="form-control"
+                    type="url"
+                    placeholder="http://192.168.216.141:8000"
+                    autocomplete="off"
+                    required
+                >
+                <p class="hint">예: http://192.168.216.141:8000 또는 https://xxxx.ngrok-free.app</p>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary" type="submit">서버 접속</button>
+                <button class="btn btn-secondary" type="button" id="last-connect">마지막 주소로 접속</button>
+                <button class="btn btn-danger" type="button" id="clear-saved">저장값 초기화</button>
+            </div>
+        </form>
+
+        <section class="status-box">
+            <div class="status-line">
+                <span id="status-dot" class="status-dot warn"></span>
+                <span id="status-text" class="status-text">서버 주소를 입력한 뒤 서버 접속을 누르세요.</span>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_SERVER_URL = "edgeVision.serverUrl";
+
+        const serverInput = document.getElementById("server-url");
+        const form = document.getElementById("connect-form");
+        const statusDot = document.getElementById("status-dot");
+        const statusText = document.getElementById("status-text");
+
+        function setStatus(message, type) {
+            statusText.textContent = message;
+            statusDot.className = "status-dot";
+
+            if (type === "error") {
+                statusDot.classList.add("error");
+            } else if (type === "warn") {
+                statusDot.classList.add("warn");
+            }
+        }
+
+        function normalizeUrl(value) {
+            const trimmed = String(value || "").trim();
+
+            if (!trimmed) {
+                return "";
+            }
+
+            if (/^https?:\/\//i.test(trimmed)) {
+                return trimmed.replace(/\/+$/, "");
+            }
+
+            return `http://${trimmed}`.replace(/\/+$/, "");
+        }
+
+        function connect(serverUrl) {
+            if (!serverUrl) {
+                setStatus("서버 주소를 입력해야 합니다.", "error");
+                serverInput.focus();
+                return;
+            }
+
+            localStorage.setItem(STORAGE_SERVER_URL, serverUrl);
+            setStatus(`접속 중: ${serverUrl}`, "ok");
+
+            if (window.AndroidBridge && typeof window.AndroidBridge.openDashboard === "function") {
+                window.AndroidBridge.openDashboard(serverUrl);
+                return;
+            }
+
+            window.location.href = serverUrl;
+        }
+
+        function loadSavedValue() {
+            const savedUrl = localStorage.getItem(STORAGE_SERVER_URL) || "";
+            serverInput.value = savedUrl;
+
+            if (savedUrl) {
+                setStatus(`저장된 서버 주소: ${savedUrl}`, "ok");
+            }
+        }
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            connect(normalizeUrl(serverInput.value));
+        });
+
+        document.getElementById("last-connect").addEventListener("click", function () {
+            connect(normalizeUrl(localStorage.getItem(STORAGE_SERVER_URL)));
+        });
+
+        document.getElementById("clear-saved").addEventListener("click", function () {
+            localStorage.removeItem(STORAGE_SERVER_URL);
+            serverInput.value = "";
+            setStatus("저장된 서버 주소를 초기화했습니다.", "warn");
+        });
+
+        loadSavedValue();
+    </script>
+</body>
+</html>

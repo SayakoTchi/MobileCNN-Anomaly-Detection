@@ -1,10 +1,13 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from .models import Post
 
 # Create your views here.
+def connect(request):
+    return render(request, 'blog/connect.html')
+
 def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -16,6 +19,19 @@ def signup_view(request):
         form = UserCreationForm()
         
     return render(request, 'blog/signup.html', {'form' : form})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            # 유저 인증 및 세션 로그인
+            user = form.get_user()
+            login(request, user)
+            return redirect('dashboard') # 로그인 성공 시 대시보드로 이동
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, 'blog/login.html', {'form': form})
 
 
 @login_required

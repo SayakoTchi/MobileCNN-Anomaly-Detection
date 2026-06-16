@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -26,3 +27,5 @@ urlpatterns = [
     # 2) 루트 주소('')나 /login/ 등 공통 주소도 그냥 앱 내부에서 처리하도록 통째로 토스
     path('', include('blog.urls')), 
 ]
+
+

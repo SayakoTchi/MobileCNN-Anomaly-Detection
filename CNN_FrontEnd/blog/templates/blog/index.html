@@ -167,7 +167,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-lg-7">
                     <label for="v50-base-url" class="form-label small text-secondary">V50 Edge Node Base URL</label>
-                    <input id="v50-base-url" class="form-control" type="url" placeholder="http://192.168.0.50:8080">
+                    <input id="v50-base-url" class="form-control" type="url" placeholder="http://192.168.216.204:8080">
                 </div>
                 <div class="col-6 col-lg-auto">
                     <button id="save-base-url" class="btn btn-outline-light w-100" type="button">
@@ -181,6 +181,13 @@
                 </div>
             </div>
             <p id="health-message" class="text-secondary small mb-0 mt-2">V50 노드 상태를 확인해 주세요.</p>
+
+            <div id="notice" class="alert alert-info py-2 px-3 mt-3 mb-0" hidden></div>
+
+            <div class="d-flex gap-2 mt-2">
+                <span id="node-status-badge" class="badge rounded-pill text-bg-secondary">Unknown</span>
+                <span id="device-online-badge" class="badge rounded-pill text-bg-secondary">Unknown</span>
+            </div>
         </section>
 
         <main id="page-dashboard" class="page-content active">
@@ -193,7 +200,7 @@
                     <span class="badge text-bg-danger"><span class="spinner-grow spinner-grow-sm me-1"></span>REC</span>
                 </div>
                 <div class="video-container">
-                    <img src="/video_feed" alt="CCTV live feed">
+                    <img src="http://192.168.216.204:8080/video_feed" alt="CCTV live feed">
                 </div>
             </section>
 
@@ -238,7 +245,7 @@
         </a>
     </nav>
 
-    <script type="module" src="{% static 'js/dashboard.mjs' %}"></script>
+    <script type="module" src="{% static 'js/dashboard.js' %}?v=8080-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function updateClock() {

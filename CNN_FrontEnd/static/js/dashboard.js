@@ -1,7 +1,8 @@
-import { V50ApiClient } from './v50Api.mjs';
+import { V50ApiClient } from './v50Api.js';
 
 const BASE_URL_STORAGE_KEY = 'edgeVision.v50BaseUrl';
-const DEFAULT_BASE_URL = 'http://192.168.0.50:8080';
+// 백엔드 서버 주소
+const DEFAULT_BASE_URL = 'http://192.168.216.204:8080';
 
 const state = {
   timeline: [],
@@ -172,12 +173,15 @@ function bindApiControls() {
   baseUrlInput.value = state.client.baseUrl;
 
   $('save-base-url').addEventListener('click', () => {
+
     try {
       state.client.setBaseUrl(baseUrlInput.value);
       localStorage.setItem(BASE_URL_STORAGE_KEY, state.client.baseUrl);
-      setNotice(`V50 주소 저장: ${state.client.baseUrl}`, 'success');
+      setNotice(`저장되었습니다: ${state.client.baseUrl}`, 'success');
+      setText('health-message', `저장된 백엔드 주소: ${state.client.baseUrl}`);
     } catch (error) {
       setNotice(error.message, 'danger');
+      setText('health-message', error.message);
     }
   });
 
@@ -200,60 +204,78 @@ function bindApiControls() {
     });
   });
 
-  $('config-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    withButtonLoading($('apply-threshold'), '적용 중', async () => {
-      try {
-        const threshold = Number($('threshold-input').value);
-        if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
-          throw new Error('threshold는 0부터 1 사이의 숫자여야 합니다.');
+  const configForm = $('config-form');
+  if (configForm) {
+    configForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      withButtonLoading($('apply-threshold'), '적용 중', async () => {
+        try {
+          const threshold = Number($('threshold-input').value);
+
+          if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
+            throw new Error('threshold는 0부터 1 사이의 숫자여야 합니다.');
+          }
+
+          const result = await state.client.updateConfig(threshold);
+          setNotice(result.msg || result.message || '설정 변경 완료', 'success');
+        } catch (error) {
+          setNotice(error.message, 'danger');
         }
-        const result = await state.client.updateConfig(threshold);
-        setNotice(result.msg || result.message || '설정 변경 완료', 'success');
-      } catch (error) {
-        setNotice(error.message, 'danger');
-      }
+      });
     });
-  });
+  }
 
-  $('detect-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    withButtonLoading($('run-detect'), '분석 중', async () => {
-      try {
-        const file = $('frame-file').files[0];
-        if (!file) {
-          throw new Error('분석할 이미지 파일을 선택해 주세요.');
+  const detectForm = $('detect-form');
+  if (detectForm) {
+    detectForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      withButtonLoading($('run-detect'), '분석 중', async () => {
+        try {
+          const file = $('frame-file').files[0];
+
+          if (!file) {
+            throw new Error('분석할 이미지 파일을 선택해 주세요.');
+          }
+
+          const result = await state.client.detect(file);
+          renderDetectResult(result);
+          setNotice('프레임 분석 요청이 완료되었습니다.', 'success');
+        } catch (error) {
+          setNotice(error.message, 'danger');
         }
-        const result = await state.client.detect(file);
-        renderDetectResult(result);
-        setNotice('프레임 분석 요청이 완료되었습니다.', 'success');
-      } catch (error) {
-        setNotice(error.message, 'danger');
-      }
+      });
     });
-  });
+  }
 
-  $('refresh-timeline').addEventListener('click', (event) => {
-    withButtonLoading(event.currentTarget, '갱신 중', async () => {
-      try {
-        await refreshTimeline();
-        setNotice('타임라인을 갱신했습니다.', 'success');
-      } catch (error) {
-        setNotice(error.message, 'danger');
-      }
+  const refreshTimelineButton = $('refresh-timeline');
+  if (refreshTimelineButton) {
+    refreshTimelineButton.addEventListener('click', (event) => {
+      withButtonLoading(event.currentTarget, '갱신 중', async () => {
+        try {
+          await refreshTimeline();
+          setNotice('타임라인을 갱신했습니다.', 'success');
+        } catch (error) {
+          setNotice(error.message, 'danger');
+        }
+      });
     });
-  });
+  }
 
-  $('swap-model').addEventListener('click', (event) => {
-    withButtonLoading(event.currentTarget, '교체 중', async () => {
-      try {
-        const message = await state.client.swapModel();
-        setNotice(message, 'success');
-      } catch (error) {
-        setNotice(error.message, 'danger');
-      }
+  const swapModelButton = $('swap-model');
+  if (swapModelButton) {
+    swapModelButton.addEventListener('click', (event) => {
+      withButtonLoading(event.currentTarget, '교체 중', async () => {
+        try {
+          const message = await state.client.swapModel();
+          setNotice(message, 'success');
+        } catch (error) {
+          setNotice(error.message, 'danger');
+        }
+      });
     });
-  });
+  }
 }
 
 function updateTime() {

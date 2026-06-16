@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -117,8 +119,20 @@ USE_TZ = False
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 # settings.py
 # 로그인 성공 시 이동할 메인 페이지 URL 패턴 이름
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard' 
 LOGOUT_REDIRECT_URL = 'login'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://172.26.48.1:8000",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://172.26.48.1:8000",
+]
